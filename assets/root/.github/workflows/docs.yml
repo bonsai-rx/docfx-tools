@@ -22,7 +22,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
       
       - name: Restore NuGet Packages
-        run: msbuild -t:restore src\Bonsai.Gui.sln
+        run: msbuild -t:restore src/Bonsai.Gui.sln
 
       - name: Build Solution
         run: msbuild src/Bonsai.Gui.sln /p:Configuration=Release
