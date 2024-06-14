@@ -1,15 +1,23 @@
+$resolver = New-Object System.Xml.Resolvers.XmlPreloadedResolver
+$svgDtdUri = $resolver.ResolveUri("http://www.w3.org/Graphics/SVG/1.1/DTD/", "svg11.dtd")
+$svgDtd = Get-Content (Join-Path $PSScriptRoot "svg11.dtd")
+$resolver.Add($svgDtdUri, $svgDtd)
+
 function Import-Svg([string]$svgFile)
 {
     $svgDOM = New-Object System.Xml.XmlDocument
     $settings = New-Object System.Xml.XmlReaderSettings
+    $settings.XmlResolver = $resolver
     $settings.MaxCharactersFromEntities = 0;
     $settings.DtdProcessing = [System.Xml.DtdProcessing]::Parse
-    $reader = [System.Xml.XmlReader]::Create($svgFile, $settings)
+    $textReader = [System.IO.File]::OpenText($svgFile)
+    $xmlReader = [System.Xml.XmlReader]::Create($textReader, $settings)
     try {
-        $svgDOM.Load($reader)
+        $svgDOM.Load($xmlReader)
     }
     finally {
-        $reader.Close()
+        $xmlReader.Close()
+        $textReader.Close()
     }
     return $svgDOM
 }
