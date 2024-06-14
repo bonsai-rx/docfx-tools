@@ -50,3 +50,8 @@ Exporting SVG images for all example workflows can be automated by placing all `
 ```ps1
 .\modules\Export-Image.ps1 "..\src\PackageName\bin\Release\net472"
 ```
+
+## Python Notebooks
+
+This repository also provides two helper python notebooks to help configure Docfx.json as well as to copy the necessary files and folders for building a new Docfx website.
+These notebooks need a base python 3 installation only and no external libraries need to be installed (other than Jupyter Notebook).
