@@ -1,0 +1,114 @@
+{{#oe.operators}}
+
+<div>{{{description}}}</div> 
+
+<table style="border: 0px; table-layout: fixed; padding: 0; margin: 0; margin-bottom: 1rem;">
+  <tr style="border: 0px;">
+
+    <!--- input --->
+
+    <td style="border: 0px; vertical-align: middle; margin: 0; padding: 0; width: 45%;">
+      <table style="table-layout: fixed; padding: 0; margin: 0; vertical-align: middle;">
+        <tr style="border: 0px;">
+          {{#input}}
+          <td style="border: 1px solid; vertical-align: middle; width: 80%; border-color: var(--bs-border-color);">
+            {{#internal}}<h5><a href="#{{{name}}}">{{{name}}}</a></h5>{{/internal}}
+            {{#external}}<h5>{{{specName}}}</h5>{{/external}}
+            {{{description}}}
+          </td>
+          <td style="text-align: right; vertical-align: middle; margin: 0; padding: 0; width: 20%; border: 0px;">
+            <img src="../images/right-arrow.svg" alt="right-arrow">
+          </td>
+          {{/input}}
+        </tr>
+      </table>
+    </td>
+
+    <!--- operator --->
+
+    <td style="border: 0px; text-align: center; vertical-align: middle; margin: 0; padding: 0; width: 10%;">
+      <img src="../images/{{oe.operatorType}}-operator.svg" alt="representation of a source, sink, or combinator operator">
+    </td>
+
+    <!--- output --->
+
+    <td style="border: 0px; vertical-align: middle; margin: 0; padding: 0; width: 45%;">
+      <table style="table-layout: fixed; padding: 0; margin: 0; vertical-align: middle;">
+        <tr style="border: 0px;">
+          <td style="border: 0px; vertical-align: middle; margin: 0; padding: 0; width: 20%;">
+            <img src="../images/right-arrow.svg" alt="right-arrow">
+          </td>
+          <td style="border: 1px solid; vertical-align: middle; width: 80%; border-color: var(--bs-border-color);">
+            {{#output.internal}}<h5><a href="#{{{output.name}}}">{{{output.name}}}</a></h5>{{/output.internal}}
+            {{#output.external}}<h5>{{{output.specName}}}</h5>{{/output.external}}
+            <div>{{{output.description}}}</div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+{{/oe.operators}}
+
+{{#oe.operators.0.hasDataFrame}}
+{{^oe.operators.0.output.useInputDataFrame}}
+
+<h3 id="{{{oe.operators.0.output.name}}}">{{{oe.operators.0.output.name}}}</h3>
+<div>{{{oe.operators.0.output.dataFrameDescription}}}</div>
+
+{{/oe.operators.0.output.useInputDataFrame}}
+
+{{#oe.operators.0.output.useInputDataFrame}}
+
+<h3 id="{{{oe.operators.0.input.name}}}">{{{oe.operators.0.input.name}}}</h3>
+<div>{{{oe.operators.0.input.dataFrameDescription}}}</div>
+
+{{/oe.operators.0.output.useInputDataFrame}}
+
+<table>
+
+  <tr>
+    <th style="white-space: nowrap;">Data Frame Member</th>
+    <th>Type</th> 
+    <th>Description</th>
+  </tr>
+
+  {{#oe.operators.0.dataFrame}}
+  {{>partials/propertyTables}}
+  {{/oe.operators.0.dataFrame}}
+  
+</table>
+
+{{/oe.operators.0.hasDataFrame}}
+
+{{#oe.operators.0.output.isEnum}}
+
+<h3 id="{{{oe.operators.0.output.name}}}">{{{oe.operators.0.output.name}}}</h3>
+
+<div>{{{oe.operators.0.output.dataFrameDescription}}}</div>
+
+<table>
+
+  <tr>
+    <th style = "white-space: no-wrap">Field & Value</th>
+    <th>Description</th>
+  </tr>
+
+  {{#oe.operators.0.output.enumFields}}
+  <tr>
+    <td style = "white-space: no-wrap">
+      <code>
+        {{{field&value}}}
+      </code>
+    </td>
+    <td>
+      {{{description}}}
+    </td>
+  </tr>
+  {{/oe.operators.0.output.enumFields}}
+
+</table>
+
+{{/oe.operators.0.output.isEnum}}
+

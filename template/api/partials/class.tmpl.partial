@@ -1,0 +1,109 @@
+{{#isClass}}
+
+<div>
+  <h1 id="{{id}}" data-uid="{{uid}}" class="text-break" style="display: inline-block;">
+    {{name.0.value}}
+    {{#sourceurl}}<a class="header-action link-secondary" title="View source" href="{{sourceurl}}"><i class="bi bi-code-slash"></i></a>{{/sourceurl}}
+  </h1>
+  {{#oe.operatorType}}
+  <p style="display: inline; text-transform: capitalize"> 
+    {{oe.operatorType}} Operator
+  </p>
+  {{/oe.operatorType}}
+</div>
+
+{{#oe.device}}
+
+<div class = "alert alert-danger">
+  This operator is a device operator. If you are using Open Ephys hardware, use an aggregate operator that corresponds to your particular headstage(s) instead. Aggregate operators confer the following benefits:
+  <ul style = "margin-bottom: 0">
+    <li>The <code>address</code> properties of aggregate operators are automatically configured whereas a device operators requires manual configuration of its <code>address</code> property. This improves ease of using Open Ephys hardware.</li>
+    <li>All devices that belong to a hub (which is a collection of devices i.e. a headstage or breakout board) are automatically included, excluding the possibility of omitting configuration of a device that belongs to a hub. This improves ease of using Open Ephys hardware.</li>
+    <li>The workflow is less cluttered with configuration operators as one aggregate operator can correspond to multiple device operators. This improves workflow readability.</li>
+  </ul> 
+</div>
+
+{{/oe.device}}
+
+<div>{{{oe.description}}}</div>
+
+{{#showWorkflow}}
+<div class="workflow"><p><img src="../workflows/operators/{{name.0.value}}.bonsai" alt="{{name.0.value}} Workflow"></p></div>
+{{/showWorkflow}}
+
+{{#oe.operatorType}}
+
+<h2>Inputs & Outputs</h2>
+
+{{>partials/diagram}}
+
+{{/oe.operatorType}}
+
+{{#oe.hasSubOperators}}
+
+<h2>Properties</h2>
+
+<div>{{name.0.value}} is a aggregate operator. It comprises of the following sub-operators: </div>
+<br>
+
+{{#oe.subOperators}}
+
+<h3>{{{object}}}</h3>
+
+{{#subOperator}}
+<div>{{{object}}} is a {{{type}}} operator encapsulated by the {{name.0.value}} operator.</div>
+{{/subOperator}}
+
+{{#hasSubProperties}}
+
+<table>
+
+  <tr>
+    <th style = "white-space: nowrap;">Property</th>
+    <th style = "white-space: nowrap;">Type</th> 
+    <th>Description</th>
+  </tr>
+
+  {{#subProperties}}
+  {{>partials/propertyTables}}
+  {{/subProperties}}
+  
+</table>
+
+{{/hasSubProperties}}
+
+{{^hasSubProperties}}
+
+<div>This subclass has no public properties.</div>
+
+{{/hasSubProperties}}
+
+{{/oe.subOperators}}
+
+{{/oe.hasSubOperators}}
+
+{{^oe.hasSubOperators}}
+
+{{#oe.hasProperties}}
+
+<h2>Properties</h2>
+
+<table>
+
+  <tr>
+    <th style = "white-space: nowrap;">Property</th>
+    <th style = "white-space: nowrap;">Type</th> 
+    <th>Description</th>
+  </tr>
+
+  {{#oe.properties}}
+  {{>partials/propertyTables}}
+  {{/oe.properties}}
+  
+</table>
+
+{{/oe.hasProperties}}
+
+{{/oe.hasSubOperators}}
+
+{{/isClass}}

@@ -1,0 +1,37 @@
+<tr>
+
+    <td style = "white-space: nowrap;">
+
+        <code>{{{name}}}</code>
+        
+    </td>
+
+    <td style = "white-space: nowrap;">
+
+        {{{type}}}
+
+    </td>
+
+    <td>
+
+        {{{description}}}
+
+        {{#hasEnum}}
+
+        <dl style="margin-top: 1rem; margin-bottom: 0rem; display: grid; grid-template-columns: max-content auto;">
+
+            {{#enumFields}}
+
+            <dt style="grid-column-start: 1;"><code>{{{field&value}}}</code></dt>
+            
+            <dd style="grid-column-start: 2; margin-bottom: 0rem;">{{{description}}}</dd>
+            
+            {{/enumFields}}
+
+        </dl>
+
+        {{/hasEnum}}
+
+    </td>
+
+</tr>
