@@ -19,7 +19,6 @@ exports.preTransform = function (model) {
         itemsItemsLength = namespace.items.length;
         
         //setups operator categories 
-        //TODO check if any of the items is empty and remove them 
         let items = [{
           'name': 'Sources',
           'items': []}, {
@@ -60,6 +59,7 @@ exports.preTransform = function (model) {
             items[5].items.push(namespace.items[i]);
           }
         }
+        items = items.filter(item => item.items.length > 0);
         namespace.items = items;
       }
     }
