@@ -8,17 +8,15 @@ var BonsaiCommon = require('./BonsaiCommon.js')
  */
 exports.preTransform = function (model) {
 
-  //checks and applies TOC customisation only to API page
+  // Checks and applies TOC customisation only to API page
   if (model._key === 'api/toc.yml') {
 
-    //iterates through each namespace for packages with multiple namespaces
+    // Iterates through each namespace for packages with multiple namespaces
     for (namespace of model.items) {
-
-      //not sure if this check is really necessary are there empty namespaces?
       if (namespace.items) {
         itemsItemsLength = namespace.items.length;
-        
-        //setups operator categories 
+
+        // Setups operator categories 
         let items = [{
           'name': 'Sources',
           'items': []}, {
@@ -34,7 +32,7 @@ exports.preTransform = function (model) {
           'items': []         
         }];
 
-        // iterates through each item in the namespace and sorts them into categories
+        // Iterates through each item in the namespace and sorts them into categories
         for (let i = 0; i < itemsItemsLength; i++) {
           globalYml = '~/api/' + namespace.items[i].topicUid + '.yml';
           if (model.__global._shared[globalYml] && model.__global._shared[globalYml].type === 'class'){
@@ -59,6 +57,8 @@ exports.preTransform = function (model) {
             items[5].items.push(namespace.items[i]);
           }
         }
+        
+        // Filters out empty TOC categories and sets namespace TOC items
         items = items.filter(item => item.items.length > 0);
         namespace.items = items;
       }

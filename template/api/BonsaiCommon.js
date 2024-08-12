@@ -1,8 +1,8 @@
-// Define Bonsai operator types in documentation by checking for an explicit Category tag. If the class does not provide one,
-// check the inheritance tree of the class. Ignore Bonsai.Combinator if Bonsai.Sink or Bonsai.Transform is present as many
-// sink and transform operators inherit Bonsai.Combinator
+// This module contains common functions utilised by the Docfx Template System for Bonsai API pages.
 
 exports.defineOperatorType = function defineOperatorType(model){
+    // Define Bonsai operator types in documentation by checking for an explicit Category tag. If the class does not provide one,
+    // check the inheritance tree of the class. 
     let operatorType = {'source': false, 'combinator': false, 'sink': false, 'transform' : false};
     if (model.syntax && model.syntax.content[0].value){
       if (model.syntax.content[0].value.includes('[WorkflowElementCategory(ElementCategory.Source)]')){
@@ -22,6 +22,9 @@ exports.defineOperatorType = function defineOperatorType(model){
       if (model.inheritance){
         const inheritanceLength = model.inheritance.length;
         for (let i = 0; i < inheritanceLength; i++){
+
+          // This section checks for common Bonsai operator type nodes. Ignore Bonsai.Combinator if Bonsai.Sink or Bonsai.Transform is present 
+          // as many sink and transform operators inherit Bonsai.Combinator
           if (model.inheritance[i].uid.includes('Bonsai.Source')){
             operatorType.source = true;
           }
@@ -36,6 +39,8 @@ exports.defineOperatorType = function defineOperatorType(model){
             operatorType.combinator = false;
             operatorType.transform = true;
           }
+
+          // This section checks unique Bonsai operator type nodes
           else if (model.inheritance[i].uid.includes('Bonsai.WindowCombinator')){
             operatorType.combinator = true;
           }
@@ -51,6 +56,8 @@ exports.defineOperatorType = function defineOperatorType(model){
         }
       }
     }
+
+    // Flag for showing Bonsai workflow container for Bonsai visible operators
     operatorType.showWorkflow = operatorType.source | operatorType.combinator | operatorType.sink | operatorType.transform;
     return operatorType;
   }
