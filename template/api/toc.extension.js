@@ -21,7 +21,9 @@ exports.preTransform = function (model) {
         //setups operator categories 
         //TODO check if any of the items is empty and remove them 
         let items = [{
-          'name': 'Source',
+          'name': 'Sources',
+          'items': []}, {
+          'name': 'Transforms',
           'items': []}, {
           'name': 'Sinks',
           'items': []}, {
@@ -41,18 +43,21 @@ exports.preTransform = function (model) {
             if (operatorType.source){
               items[0].items.push(namespace.items[i]);
             }
-            else if (operatorType.sink){
+            else if (operatorType.transform){
               items[1].items.push(namespace.items[i]);
             }
-            else if (operatorType.combinator){
+            else if (operatorType.sink){
               items[2].items.push(namespace.items[i]);
             }
-            else {
+            else if (operatorType.combinator){
               items[3].items.push(namespace.items[i]);
+            }
+            else {
+              items[4].items.push(namespace.items[i]);
             }
           }
           if (model.__global._shared[globalYml] && model.__global._shared[globalYml].type === 'enum'){
-            items[4].items.push(namespace.items[i]);
+            items[5].items.push(namespace.items[i]);
           }
         }
         namespace.items = items;
