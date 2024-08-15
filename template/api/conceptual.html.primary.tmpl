@@ -1,0 +1,40 @@
+{{!master(layout/_master.tmpl)}}
+
+<h1>{{title}}</h1>
+{{#isGuide}}
+<br>
+
+{{#workflow}}
+{{#isDevice}}
+{{>partials/device.workflow}}
+{{/isDevice}}
+{{#isHeadstage}}
+{{>partials/headstage.workflow}}
+<br>
+{{>partials/headstage.devices}}
+{{/isHeadstage}}
+{{/workflow}}
+
+{{#visualize}}
+<br>
+<h2 id="visualize-data">Visualize Data</h2>
+
+{{#visualize_timeseries}}
+{{>partials/device.visualize_timeseries}}
+{{/visualize_timeseries}}
+
+{{#visualize_mat}}
+{{>partials/device.visualize_mat}}
+{{/visualize_mat}}
+
+{{#visualize_text}}
+{{>partials/device.visualize_text}}
+{{/visualize_text}}
+
+<p>Refer to <a class="xref" href="~/articles/getting-started/visualizing_data.html">Visualizing Data</a> for more information on visualizers and how to download them.</p>
+<p>Note that data will not be shown until a workflow is running. Check out <a class="xref" href="~/articles/getting-started/running_a_workflow.html">Running a Workflow</a> to see how to run a workflow.</p>
+
+{{/visualize}}
+{{/isGuide}}
+
+{{{conceptual}}}

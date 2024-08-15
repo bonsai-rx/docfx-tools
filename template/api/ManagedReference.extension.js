@@ -158,6 +158,28 @@ function defineProperties(model){
       }
     }
   }
+  //check if this section is necessary
+  if (model.inheritedMembers){
+    const inheritedMembersLength = model.inheritedMembers.length;
+    for (let i = 0; i < inheritedMembersLength; i++){
+      if (model.inheritedMembers[i].type && (model.inheritedMembers[i].type === 'property')){
+        let inheritedMemberYml = '~/api/' + model.inheritedMembers[i].parent + '.yml';
+        if (model['__global']['_shared'][inheritedMemberYml]['children']){
+          let inheritedMemberChildrenLength = model['__global']['_shared'][inheritedMemberYml]['children'].length;
+          for (let j =  0; j < inheritedMemberChildrenLength; j++){
+            if (model.inheritedMembers[i].uid === model['__global']['_shared'][inheritedMemberYml]['children'][j].uid){
+              properties.push(
+                {'name': model.inheritedMembers[i].name[0].value, 
+                'type': model['__global']['_shared'][inheritedMemberYml]['children'][j].syntax.return.type.specName[0].value, 
+                'description':  removeBottomMargin([model['__global']['_shared'][inheritedMemberYml]['children'][j].summary, 
+                                                    model['__global']['_shared'][inheritedMemberYml]['children'][j].remarks].join(''))
+              });
+            }
+          }
+        }
+      }
+    }
+  }
   return properties;
 }
 
@@ -245,7 +267,9 @@ exports.preTransform = function (model) {
   if (operatorType.showWorkflow) {
     model.showWorkflow = operatorType.showWorkflow;
   }
-
+  else {
+  }
+  
   operators = defineInputsAndOutputs(model);
   if (operators.length > 0){
     model.oe.operators = operators;
