@@ -3,6 +3,7 @@
 
 var BonsaiCommon = require('./BonsaiCommon.js')
 
+// This function is important for stripping the extra line that is present in some fields
 function removeBottomMargin(str){
   return str.split('').reverse().join('')
             .replace( '<p'.split('').reverse().join(''),
@@ -60,22 +61,6 @@ function defineInputsAndOutputs(model){
             const outputYmlChildrenLength = model['__global']['_shared'][outputYml]['children'].length;
             for (let j = 0; j < outputYmlChildrenLength; j++){
               if (model['__global']['_shared'][outputYml]['children'][j].type === 'property'){
-                potentialEnumYml = '~/api/' + model['__global']['_shared'][outputYml]['children'][j].syntax.return.type.uid + '.yml';
-                let enumFields = [];
-                if (model['__global']['_shared'][potentialEnumYml] && (model['__global']['_shared'][potentialEnumYml]['type'] === 'enum')){
-                  enumFields = defineEnumFields(model['__global']['_shared'][potentialEnumYml]);
-                }
-                if (enumFields.length > 0){
-                  dataFrame.push({
-                    'name': model['__global']['_shared'][outputYml]['children'][j].name[0].value, 
-                    'type': model['__global']['_shared'][outputYml]['children'][j].syntax.return.type.specName[0].value, 
-                    'description': removeBottomMargin([ model['__global']['_shared'][outputYml]['children'][j].summary, 
-                                                        model['__global']['_shared'][outputYml]['children'][j].remarks].join('')),
-                    'enumFields': enumFields,
-                    'hasEnum': true
-                  });
-                }
-                else{
                   dataFrame.push({
                     'name': model['__global']['_shared'][outputYml]['children'][j].name[0].value, 
                     'type': model['__global']['_shared'][outputYml]['children'][j].syntax.return.type.specName[0].value, 
@@ -83,7 +68,6 @@ function defineInputsAndOutputs(model){
                                                         model['__global']['_shared'][outputYml]['children'][j].remarks].join(''))
                   });                  
                 }
-              }
             }
           }
           if (dataFrame.length === 0 && input.dataFrame && input.dataFrame.length > 0){
@@ -115,16 +99,6 @@ function defineInputsAndOutputs(model){
                 }
               }
             }
-          }
-          else if (model['__global']['_shared'][outputYml] && model['__global']['_shared'][outputYml]['children'] && (model['__global']['_shared'][outputYml].type === 'enum')){
-            output.internal = true;
-            output.external = false;
-            output.dataFrameDescription = [
-              model['__global']['_shared'][outputYml].summary, 
-              model['__global']['_shared'][outputYml].remarks
-            ].join('');
-            output.enumFields = defineEnumFields(model['__global']['_shared'][outputYml]);
-            output.isEnum = true;
           }
           else if (!output.internal){
             output.external = true;
@@ -160,26 +134,11 @@ function defineSubOperators(model){
           let subProperties = [];
           for (let j = 0; j < subOperatorChildrenLength; j++){
             if (model['__global']['_shared'][potentialSubOperatorYml]['children'][j].type === 'property'){
-              let enumFields = [];
-              potentialEnumYml = '~/api/' + model['__global']['_shared'][potentialSubOperatorYml]['children'][j].syntax.return.type.uid + '.yml';
-              if (model['__global']['_shared'][potentialEnumYml] && (model['__global']['_shared'][potentialEnumYml]['type'] === 'enum')){
-                enumFields = defineEnumFields(model['__global']['_shared'][potentialEnumYml]);
-              }
-              if (enumFields.length > 0){
-                subProperties.push({'name': model['__global']['_shared'][potentialSubOperatorYml]['children'][j].name[0].value,
-                                    'type': model['__global']['_shared'][potentialSubOperatorYml]['children'][j].syntax.return.type.specName[0].value,
-                                    'description': removeBottomMargin( [model['__global']['_shared'][potentialSubOperatorYml]['children'][j].summary, 
-                                                                        model['__global']['_shared'][potentialSubOperatorYml]['children'][j].remarks].join('')),
-                                    'enumFields': enumFields,
-                                    'hasEnum': true});
-              }
-              else{
                 subProperties.push({'name': model['__global']['_shared'][potentialSubOperatorYml]['children'][j].name[0].value,
                                     'type': model['__global']['_shared'][potentialSubOperatorYml]['children'][j].syntax.return.type.specName[0].value,
                                     'description': removeBottomMargin( [model['__global']['_shared'][potentialSubOperatorYml]['children'][j].summary, 
                                                                         model['__global']['_shared'][potentialSubOperatorYml]['children'][j].remarks].join(''))
                 });
-              }
             }
           }
           if (subProperties.length > 0){
@@ -212,6 +171,10 @@ function defineProperties(model){
     const childrenLength = model.children.length;
     for (let i = 0; i < childrenLength; i++){
       if (model.children[i].type === 'property'){
+
+        // this section adds enum members and summary to the property table if the property is an enum
+        // however doesnt always work (In Pulsepal Repo - Outputchannel enum is the only one out of 6 enums that doesnt work)
+        // bug present in original template so need to troubleshoot
         potentialEnumYml = '~/api/' + model['children'][i].syntax.return.type.uid + '.yml';
         let enumFields = [];
         if (model['__global']['_shared'][potentialEnumYml] && (model['__global']['_shared'][potentialEnumYml]['type'] === 'enum')){
@@ -226,6 +189,7 @@ function defineProperties(model){
             'hasEnum': true
           });
         }
+
         else { 
           properties.push({
             'name': model.children[i].name[0].value, 
@@ -299,6 +263,8 @@ const swapElements = (array, index1, index2) => {
   array[index2] = temp;
 };
 
+// While enum fields can be accessed directly using the mustache template, this function is
+// still important for stripping the extra line that is present in the summary/remarks field
 function defineEnumFields(model){
   let enumFields = [];
   if (model.children){
@@ -393,12 +359,8 @@ exports.preTransform = function (model) {
 
   enumFields = defineEnumFields(model);
   if (enumFields.length > 0){
-    model.oe.hasEnumFields = true;
-    model.oe.enumFields = enumFields;
-  }
-
-  if (model.uid.includes('DeviceFactory')){
-    model.showWorkflow = false;
+    model.hasEnumFields = true;
+    model.enumFields = enumFields;
   }
 
   return model;
