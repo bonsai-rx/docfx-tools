@@ -1,6 +1,6 @@
 {{#isEnum}}
 
-<h1 class="text-break">
+<h1 id="{{id}}" data-uid="{{uid}}" class="text-break">
   {{name.0.value}}
   {{#sourceurl}}<a class="header-action link-secondary" title="View source" href="{{sourceurl}}"><i class="bi bi-code-slash"></i></a>{{/sourceurl}}
 </h1>
