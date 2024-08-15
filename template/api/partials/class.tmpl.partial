@@ -2,7 +2,7 @@
 
 <div>
   <h1 id="{{id}}" data-uid="{{uid}}" class="text-break" style="display: inline-block;">
-    {{name.0.value}}
+    {{name.0.value}}hi
     {{#sourceurl}}<a class="header-action link-secondary" title="View source" href="{{sourceurl}}"><i class="bi bi-code-slash"></i></a>{{/sourceurl}}
   </h1>
   {{#oe.operatorType}}
@@ -21,55 +21,9 @@
 {{#oe.operatorType}}
 
 <h2>Inputs & Outputs</h2>
-
 {{>partials/diagram}}
 
 {{/oe.operatorType}}
-
-{{#oe.hasSubOperators}}
-
-<h2>Properties</h2>
-
-<div>{{name.0.value}} is a aggregate operator. It comprises of the following sub-operators: </div>
-<br>
-
-{{#oe.subOperators}}
-
-<h3>{{{object}}}</h3>
-
-{{#subOperator}}
-<div>{{{object}}} is a {{{type}}} operator encapsulated by the {{name.0.value}} operator.</div>
-{{/subOperator}}
-
-{{#hasSubProperties}}
-
-<table>
-
-  <tr>
-    <th style = "white-space: nowrap;">Property</th>
-    <th style = "white-space: nowrap;">Type</th> 
-    <th>Description</th>
-  </tr>
-
-  {{#subProperties}}
-  {{>partials/propertyTables}}
-  {{/subProperties}}
-  
-</table>
-
-{{/hasSubProperties}}
-
-{{^hasSubProperties}}
-
-<div>This subclass has no public properties.</div>
-
-{{/hasSubProperties}}
-
-{{/oe.subOperators}}
-
-{{/oe.hasSubOperators}}
-
-{{^oe.hasSubOperators}}
 
 {{#oe.hasProperties}}
 
@@ -90,7 +44,5 @@
 </table>
 
 {{/oe.hasProperties}}
-
-{{/oe.hasSubOperators}}
 
 {{/isClass}}
