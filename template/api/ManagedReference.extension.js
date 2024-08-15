@@ -130,9 +130,10 @@ function defineProperties(model){
     for (let i = 0; i < childrenLength; i++){
       if (model.children[i].type === 'property'){
 
-        // This section adds enum members and summary to the property table if the property is an enum
-        // however doesnt always work (In Pulsepal Repo - Outputchannel enum is the only one out of 6 enums that doesnt work)
-        // bug present in original template so need to troubleshoot
+        // This section adds enum fields and values to the property table if the property is an enum
+        // However doesnt always work (In Pulsepal Repo - Outputchannel enum doesnt show sometimes but the others do)
+        // Bug present in original template so need to troubleshoot
+        // Nice to have I think but not critical.
         potentialEnumYml = '~/api/' + model['children'][i].syntax.return.type.uid + '.yml';
         let enumFields = [];
         if (model['__global']['_shared'][potentialEnumYml] && (model['__global']['_shared'][potentialEnumYml]['type'] === 'enum')){
@@ -147,7 +148,7 @@ function defineProperties(model){
             'hasEnum': true
           });
         }
-        // This adds the rest of the properties
+        // This adds the rest of the non-enum properties normally
         else { 
           properties.push({
             'name': model.children[i].name[0].value, 
@@ -158,7 +159,8 @@ function defineProperties(model){
       }
     }
   }
-  //check if this section is necessary
+  // This adds properties that belong to the members that it inherits (and which show up in the Bonsai side panel)
+  // On a default docfx website they dont show, so its pretty important.
   if (model.inheritedMembers){
     const inheritedMembersLength = model.inheritedMembers.length;
     for (let i = 0; i < inheritedMembersLength; i++){
