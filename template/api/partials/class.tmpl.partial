@@ -2,7 +2,7 @@
 
 <div>
   <h1 id="{{id}}" data-uid="{{uid}}" class="text-break" style="display: inline-block;">
-    {{name.0.value}}hi
+    {{name.0.value}}
     {{#sourceurl}}<a class="header-action link-secondary" title="View source" href="{{sourceurl}}"><i class="bi bi-code-slash"></i></a>{{/sourceurl}}
   </h1>
   {{#oe.operatorType}}
