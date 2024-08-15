@@ -122,48 +122,6 @@ function defineInputsAndOutputs(model){
   return operators;
 }
 
-function defineSubOperators(model){
-  let subOperators = []
-  if (model.children){
-    const childrenLength = model.children.length;
-    for (let i = 0; i < childrenLength; i++){
-      if (model.children[i].type === 'property'){
-        potentialSubOperatorYml = '~/api/' + model.children[i].syntax.return.type.uid + '.yml';
-        if (model['__global']['_shared'][potentialSubOperatorYml]){
-          subOperatorChildrenLength = model['__global']['_shared'][potentialSubOperatorYml]['children'].length;
-          let subProperties = [];
-          for (let j = 0; j < subOperatorChildrenLength; j++){
-            if (model['__global']['_shared'][potentialSubOperatorYml]['children'][j].type === 'property'){
-                subProperties.push({'name': model['__global']['_shared'][potentialSubOperatorYml]['children'][j].name[0].value,
-                                    'type': model['__global']['_shared'][potentialSubOperatorYml]['children'][j].syntax.return.type.specName[0].value,
-                                    'description': removeBottomMargin( [model['__global']['_shared'][potentialSubOperatorYml]['children'][j].summary, 
-                                                                        model['__global']['_shared'][potentialSubOperatorYml]['children'][j].remarks].join(''))
-                });
-            }
-          }
-          if (subProperties.length > 0){
-            subOperators.push({
-              'object': model.children[i].name[0].value,
-              'type': model.children[i].syntax.return.type.specName[0].value,
-              'subProperties': subProperties,
-              'hasSubProperties': true,
-              'subOperator': true
-            });
-          }
-          else if (model.__global._shared['~/api/' + model.children[i].name[0].value + '.yml']){
-            subOperators.push({
-              'object': model.children[i].name[0].value,
-              'type': model.children[i].syntax.return.type.specName[0].value,
-              'subOperator': true
-            });
-          }
-        }
-      }
-    }
-  }
-  return subOperators
-}
-
 // compile list of properties
 function defineProperties(model){
   properties = [];
@@ -172,7 +130,7 @@ function defineProperties(model){
     for (let i = 0; i < childrenLength; i++){
       if (model.children[i].type === 'property'){
 
-        // this section adds enum members and summary to the property table if the property is an enum
+        // This section adds enum members and summary to the property table if the property is an enum
         // however doesnt always work (In Pulsepal Repo - Outputchannel enum is the only one out of 6 enums that doesnt work)
         // bug present in original template so need to troubleshoot
         potentialEnumYml = '~/api/' + model['children'][i].syntax.return.type.uid + '.yml';
@@ -189,7 +147,7 @@ function defineProperties(model){
             'hasEnum': true
           });
         }
-
+        // This adds the rest of the properties
         else { 
           properties.push({
             'name': model.children[i].name[0].value, 
@@ -200,6 +158,7 @@ function defineProperties(model){
       }
     }
   }
+  //check if this section is necessary
   if (model.inheritedMembers){
     const inheritedMembersLength = model.inheritedMembers.length;
     for (let i = 0; i < inheritedMembersLength; i++){
@@ -224,6 +183,8 @@ function defineProperties(model){
   return properties;
 }
 
+// While docfx has an option to sort enum fields alphabetically, it does not have a similar option for class properties
+// and this function provides that.
 function sortProperties(properties){
   let propertyNames = [];
   let propertyNamesThatFitPattern = [];
@@ -307,7 +268,6 @@ exports.preTransform = function (model) {
     model.showWorkflow = operatorType.showWorkflow;
   }
   else {
-
   }
   
   operators = defineInputsAndOutputs(model);
@@ -319,42 +279,6 @@ exports.preTransform = function (model) {
   if (properties.length > 0){
     model.oe.hasProperties = true;
     model.oe.properties = sortProperties(properties);
-  }
-  
-  subOperators = defineSubOperators(model);
-  if (subOperators.length > 0){
-    model.oe.hasSubOperators = true;
-    model.oe.subOperators = subOperators;
-  }
-
-  if (model.oe.hasProperties && model.oe.hasSubOperators){
-    subPropertyNames = [];
-    hubProperties = [];
-    const subOperatorsLength = model.oe.subOperators.length;
-    for (let i = 0; i < subOperatorsLength; i++){
-      subPropertyNames.push(model.oe.subOperators[i].object);
-    }
-    const propertiesLength = model.oe.properties.length;
-    for (let i = 0; i < propertiesLength; i++){
-      const subPropertyNamesLength = subPropertyNames.length;
-      propertyNotInSubOperator = false;
-      for (let j = 0; j < subPropertyNamesLength; j++){
-        if (model.oe.properties[i].name === subPropertyNames[j]){
-          propertyNotInSubOperator = true;
-        }
-      }
-      if (!propertyNotInSubOperator){
-        hubProperties.push(model.oe.properties[i]);
-      }
-    }
-    if (hubProperties.length > 0){
-      model.oe.subOperators.push({
-        'object': 'Misc',
-        'subProperties': hubProperties,
-        'hasSubProperties': true,
-        'subOperator': false
-      })
-    }
   }
 
   enumFields = defineEnumFields(model);
