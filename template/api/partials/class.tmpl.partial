@@ -2,30 +2,30 @@
 
 <div>
   <h1 id="{{id}}" data-uid="{{uid}}" class="text-break" style="display: inline-block;">
-    {{name.0.value}}
+    {{name.0.value}}hi
     {{#sourceurl}}<a class="header-action link-secondary" title="View source" href="{{sourceurl}}"><i class="bi bi-code-slash"></i></a>{{/sourceurl}}
   </h1>
-  {{#oe.operatorType}}
+  {{#bonsai.operatorType}}
   <p style="display: inline; text-transform: capitalize"> 
-    {{oe.operatorType}} Operator
+    {{bonsai.operatorType}} Operator
   </p>
-  {{/oe.operatorType}}
+  {{/bonsai.operatorType}}
 </div>
 
-<div>{{{oe.description}}}</div>
+<div>{{{bonsai.description}}}</div>
 
-{{#showWorkflow}}
+{{#bonsai.showWorkflow}}
 <div class="workflow"><p><img src="../workflows/operators/{{name.0.value}}.bonsai" alt="{{name.0.value}} Workflow"></p></div>
-{{/showWorkflow}}
+{{/bonsai.showWorkflow}}
 
-{{#oe.operatorType}}
+{{#bonsai.operatorType}}
 
 <h2>Inputs & Outputs</h2>
 {{>partials/diagram}}
 
-{{/oe.operatorType}}
+{{/bonsai.operatorType}}
 
-{{#oe.hasProperties}}
+{{#bonsai.hasProperties}}
 
 <h2>Properties</h2>
 
@@ -37,12 +37,12 @@
     <th>Description</th>
   </tr>
 
-  {{#oe.properties}}
+  {{#bonsai.properties}}
   {{>partials/propertyTables}}
-  {{/oe.properties}}
+  {{/bonsai.properties}}
   
 </table>
 
-{{/oe.hasProperties}}
+{{/bonsai.hasProperties}}
 
 {{/isClass}}

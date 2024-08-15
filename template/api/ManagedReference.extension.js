@@ -251,42 +251,42 @@ function defineEnumFields(model){
  */
 exports.preTransform = function (model) {
   
-  model.oe = {};
+  model.bonsai = {};
   
-  model.oe.description = [model.summary, model.remarks].join('');
+  model.bonsai.description = [model.summary, model.remarks].join('');
 
   operatorType = BonsaiCommon.defineOperatorType(model);
   if (operatorType.source){
-    model.oe.operatorType = 'source';
+    model.bonsai.operatorType = 'source';
   }
   else if (operatorType.sink){
-    model.oe.operatorType = 'sink';
+    model.bonsai.operatorType = 'sink';
   }
   else if (operatorType.combinator){
-    model.oe.operatorType = 'combinator';
+    model.bonsai.operatorType = 'combinator';
   }
 
   if (operatorType.showWorkflow) {
-    model.showWorkflow = operatorType.showWorkflow;
+    model.bonsai.showWorkflow = operatorType.showWorkflow;
   }
   else {
   }
   
   operators = defineInputsAndOutputs(model);
   if (operators.length > 0){
-    model.oe.operators = operators;
+    model.bonsai.operators = operators;
   }
 
   properties = defineProperties(model);
   if (properties.length > 0){
-    model.oe.hasProperties = true;
-    model.oe.properties = sortProperties(properties);
+    model.bonsai.hasProperties = true;
+    model.bonsai.properties = sortProperties(properties);
   }
 
   enumFields = defineEnumFields(model);
   if (enumFields.length > 0){
-    model.hasEnumFields = true;
-    model.enumFields = enumFields;
+    model.bonsai.hasEnumFields = true;
+    model.bonsai.enumFields = enumFields;
   }
 
   return model;

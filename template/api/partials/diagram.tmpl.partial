@@ -1,4 +1,4 @@
-{{#oe.operators}}
+{{#bonsai.operators}}
 
 <div>{{{description}}}</div> 
 
@@ -27,7 +27,7 @@
     <!--- operator --->
 
     <td style="border: 0px; text-align: center; vertical-align: middle; margin: 0; padding: 0; width: 10%;">
-      <img src="../bonsai/template/api/images/{{oe.operatorType}}-operator.svg" alt="representation of a source, sink, transform or combinator operator">
+      <img src="../bonsai/template/api/images/{{bonsai.operatorType}}-operator.svg" alt="representation of a source, sink, transform or combinator operator">
     </td>
 
     <!--- output --->
@@ -49,4 +49,4 @@
   </tr>
 </table>
 
-{{/oe.operators}}
+{{/bonsai.operators}}

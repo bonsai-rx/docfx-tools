@@ -5,9 +5,9 @@
   {{#sourceurl}}<a class="header-action link-secondary" title="View source" href="{{sourceurl}}"><i class="bi bi-code-slash"></i></a>{{/sourceurl}}
 </h1>
 
-{{{oe.description}}}
+{{{bonsai.description}}}
 
-{{#hasEnumFields}}
+{{#bonsai.hasEnumFields}}
 
 <h2>Fields</h2>
 
@@ -18,7 +18,7 @@
     <th>Description</th>
   </tr>
 
-  {{#enumFields}}
+  {{#bonsai.enumFields}}
   <tr>
     <td style = "white-space: no-wrap">
       <code>
@@ -29,10 +29,10 @@
       {{{description}}}
     </td>
   </tr>
-  {{/enumFields}}
+  {{/bonsai.enumFields}}
 
 </table>
 
-{{/hasEnumFields}}
+{{/bonsai.hasEnumFields}}
 
 {{/isEnum}}
