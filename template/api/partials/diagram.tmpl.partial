@@ -17,7 +17,7 @@
             {{{description}}}
           </td>
           <td style="text-align: right; vertical-align: middle; margin: 0; padding: 0; width: 20%; border: 0px;">
-            <img src="../images/right-arrow.svg" alt="right-arrow">
+            <img src="../bonsai/template/api/images/right-arrow.svg" alt="right-arrow">
           </td>
           {{/input}}
         </tr>
@@ -27,7 +27,7 @@
     <!--- operator --->
 
     <td style="border: 0px; text-align: center; vertical-align: middle; margin: 0; padding: 0; width: 10%;">
-      <img src="../images/{{oe.operatorType}}-operator.svg" alt="representation of a source, sink, or combinator operator">
+      <img src="../bonsai/template/api/images/{{oe.operatorType}}-operator.svg" alt="representation of a source, sink, or combinator operator">
     </td>
 
     <!--- output --->
@@ -36,7 +36,7 @@
       <table style="table-layout: fixed; padding: 0; margin: 0; vertical-align: middle;">
         <tr style="border: 0px;">
           <td style="border: 0px; vertical-align: middle; margin: 0; padding: 0; width: 20%;">
-            <img src="../images/right-arrow.svg" alt="right-arrow">
+            <img src="../bonsai/template/api/images/right-arrow.svg" alt="right-arrow">
           </td>
           <td style="border: 1px solid; vertical-align: middle; width: 80%; border-color: var(--bs-border-color);">
             {{#output.internal}}<h5><a href="#{{{output.name}}}">{{{output.name}}}</a></h5>{{/output.internal}}

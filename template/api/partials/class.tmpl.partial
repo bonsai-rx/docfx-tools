@@ -12,19 +12,6 @@
   {{/oe.operatorType}}
 </div>
 
-{{#oe.device}}
-
-<div class = "alert alert-danger">
-  This operator is a device operator. If you are using Open Ephys hardware, use an aggregate operator that corresponds to your particular headstage(s) instead. Aggregate operators confer the following benefits:
-  <ul style = "margin-bottom: 0">
-    <li>The <code>address</code> properties of aggregate operators are automatically configured whereas a device operators requires manual configuration of its <code>address</code> property. This improves ease of using Open Ephys hardware.</li>
-    <li>All devices that belong to a hub (which is a collection of devices i.e. a headstage or breakout board) are automatically included, excluding the possibility of omitting configuration of a device that belongs to a hub. This improves ease of using Open Ephys hardware.</li>
-    <li>The workflow is less cluttered with configuration operators as one aggregate operator can correspond to multiple device operators. This improves workflow readability.</li>
-  </ul> 
-</div>
-
-{{/oe.device}}
-
 <div>{{{oe.description}}}</div>
 
 {{#showWorkflow}}
