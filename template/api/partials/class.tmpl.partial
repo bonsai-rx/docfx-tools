@@ -45,4 +45,52 @@
 
 {{/bonsai.hasProperties}}
 
+<h2>Relationships</h2>
+<div>
+  <dl>{{__global.namespace}} - {{{namespace.specName.0.value}}}</dl>
+  {{#assemblies.0}}<dl>{{__global.assembly}} - {{assemblies.0}}.dll</dl>{{/assemblies.0}}
+</div>
+
+{{#inheritance.0}}
+<dl class="typelist inheritance">
+  <dt>{{__global.inheritance}}</dt>
+  <dd>
+{{/inheritance.0}}
+{{#inheritance}}
+    <div>{{{specName.0.value}}}</div>
+{{/inheritance}}
+    <div><span class="xref">{{name.0.value}}</span></div>
+{{#inheritance.0}}
+  </dd>
+</dl>
+{{/inheritance.0}}
+
+
+{{#implements.0}}
+<dl class="typelist implements">
+  <dt>{{__global.implements}}</dt>
+  <dd>
+{{/implements.0}}
+{{#implements}}
+    <div>{{{specName.0.value}}}</div>
+{{/implements}}
+{{#implements.0}}
+  </dd>
+</dl>
+{{/implements.0}}
+
+{{#derivedClasses.0}}
+<dl class="typelist derived">
+  <dt>{{__global.derived}}</dt>
+  <dd>
+{{/derivedClasses.0}}
+{{#derivedClasses}}
+    <div>{{{specName.0.value}}}</div>
+{{/derivedClasses}}
+{{#derivedClasses.0}}
+  </dd>
+</dl>
+{{/derivedClasses.0}}
+
+
 {{/isClass}}

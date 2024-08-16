@@ -35,4 +35,11 @@
 
 {{/bonsai.hasEnumFields}}
 
+<h2>Relationships</h2>
+<div>
+  <dl>{{__global.namespace}} - {{{namespace.specName.0.value}}}</dl>
+  {{#assemblies.0}}<dl>{{__global.assembly}} - {{assemblies.0}}.dll</dl>{{/assemblies.0}}
+</div>
+
+
 {{/isEnum}}
