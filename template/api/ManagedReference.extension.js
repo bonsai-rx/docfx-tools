@@ -41,7 +41,6 @@ function defineInputsAndOutputs(model){
             'name': model.children[i].syntax.parameters[0].type.name[0].value.replaceAll(/(IObservable<)|(>)/g, ''),
             'description': removeBottomMargin([model.children[i].syntax.parameters[0].description, model.children[i].syntax.parameters[0].remarks].join(''))
           };
-          input.dataFrame = [];
           input.external = true;
         }
         if (model.children[i].syntax.return){
@@ -49,69 +48,18 @@ function defineInputsAndOutputs(model){
             'specName': replaceIObservableAndTSource(model.children[i].syntax.return.type.specName[0].value),
             'name': model.children[i].syntax.return.type.name[0].value.replaceAll(/(IObservable<)|(>)/g, ''),
             'description': removeBottomMargin([model.children[i].syntax.return.description, model.children[i].syntax.return.remarks].join(''))};
-          dataFrame = [];
           outputYml = [ '~/api/', 
                         model.children[i].syntax.return.type.uid.replaceAll(/(\D*{)|(}$)/g, ''),  
                         '.yml'].join('');
           if (model['__global']['_shared'][outputYml] && model['__global']['_shared'][outputYml]['children'] && (model['__global']['_shared'][outputYml].type === 'class')){
             output.internal = true;
-            output.dataFrameDescription = [
-              model['__global']['_shared'][outputYml].summary, 
-              model['__global']['_shared'][outputYml].remarks].join('');
-            const outputYmlChildrenLength = model['__global']['_shared'][outputYml]['children'].length;
-            for (let j = 0; j < outputYmlChildrenLength; j++){
-              if (model['__global']['_shared'][outputYml]['children'][j].type === 'property'){
-                  dataFrame.push({
-                    'name': model['__global']['_shared'][outputYml]['children'][j].name[0].value, 
-                    'type': model['__global']['_shared'][outputYml]['children'][j].syntax.return.type.specName[0].value, 
-                    'description': removeBottomMargin([ model['__global']['_shared'][outputYml]['children'][j].summary, 
-                                                        model['__global']['_shared'][outputYml]['children'][j].remarks].join(''))
-                  });                  
-                }
-            }
-          }
-          if (dataFrame.length === 0 && input.dataFrame && input.dataFrame.length > 0){
-            dataFrame = input.dataFrame;
-            output.useInputDataFrame = true;;
-          }
-          else if (!output.internal) {
-            output.external = true;
-          }
-          if (model['__global']['_shared'][outputYml] && model['__global']['_shared'][outputYml]['inheritedMembers']){
-            output.internal = true;
-            output.external = false;
-            const inheritedMembersLength = model['__global']['_shared'][outputYml]['inheritedMembers'].length;
-            for (let j = 0; j < inheritedMembersLength; j++){
-              if (model['__global']['_shared'][outputYml]['inheritedMembers'][j].type === 'property'){
-                let inheritedMemberYml = '~/api/' + model['__global']['_shared'][outputYml]['inheritedMembers'][j].parent + '.yml';
-                if (model['__global']['_shared'][inheritedMemberYml]['children']){
-                  let inheritedMemberChildrenLength = model['__global']['_shared'][inheritedMemberYml]['children'].length;
-                  for (let k =  0; k < inheritedMemberChildrenLength; k++){
-                    if (model['__global']['_shared'][outputYml]['inheritedMembers'][j].uid === model['__global']['_shared'][inheritedMemberYml]['children'][k].uid){
-                      dataFrame.push({
-                        'name': model['__global']['_shared'][outputYml]['inheritedMembers'][j].name[0].value, 
-                        'type': model['__global']['_shared'][inheritedMemberYml]['children'][k].syntax.return.type.specName[0].value, 
-                        'description':  removeBottomMargin([model['__global']['_shared'][inheritedMemberYml]['children'][k].summary, 
-                                                            model['__global']['_shared'][inheritedMemberYml]['children'][k].remarks].join(''))
-                      });
-                    }
-                  }
-                }
-              }
-            }
           }
           else if (!output.internal){
             output.external = true;
           }
         }
-        if (Object.keys(input).length && Object.keys(dataFrame).length){
-          operators.push({'description': description, 'input': input, 'output': output, 'dataFrame': dataFrame, 'hasInput': true, 'hasDataFrame': true});
-        }
-        else if (Object.keys(input).length){
-          operators.push({'description': description, 'input': input, 'output': output, 'dataFrame': dataFrame, 'hasInput': true});
-        }
-        else if (Object.keys(dataFrame).length){
-          operators.push({'description': description, 'input': input, 'output': output, 'dataFrame': dataFrame, 'hasDataFrame': true});
+        if (Object.keys(input).length){
+          operators.push({'description': description, 'input': input, 'output': output, 'hasInput': true});
         }
         else {
           operators.push({'description': description, 'output': output});
@@ -268,8 +216,6 @@ exports.preTransform = function (model) {
 
   if (operatorType.showWorkflow) {
     model.bonsai.showWorkflow = operatorType.showWorkflow;
-  }
-  else {
   }
   
   operators = defineInputsAndOutputs(model);
