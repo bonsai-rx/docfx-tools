@@ -11,6 +11,14 @@ exports.preTransform = function (model) {
   // Checks and applies TOC customisation only to API page
   if (model._key === 'api/toc.yml') {
 
+  //Setups operator mapping
+  const typeIndexMap = {
+    'source': 0,
+    'transform': 1,
+    'sink': 2,
+    'combinator': 3
+  };
+
     // Iterates through each namespace for packages with multiple namespaces
     for (namespace of model.items) {
       if (namespace.items) {
@@ -37,18 +45,11 @@ exports.preTransform = function (model) {
           globalYml = '~/api/' + namespace.items[i].topicUid + '.yml';
           if (model.__global._shared[globalYml] && model.__global._shared[globalYml].type === 'class'){
             operatorType = BonsaiCommon.defineOperatorType(model.__global._shared[globalYml]);
-            if (operatorType.source){
-              items[0].items.push(namespace.items[i]);
-            }
-            else if (operatorType.transform){
-              items[1].items.push(namespace.items[i]);
-            }
-            else if (operatorType.sink){
-              items[2].items.push(namespace.items[i]);
-            }
-            else if (operatorType.combinator){
-              items[3].items.push(namespace.items[i]);
-            }
+
+            const index = typeIndexMap[operatorType.type]
+            if (index !== undefined) {
+              items[index].items.push(namespace.items[i]);
+            } 
             else {
               items[4].items.push(namespace.items[i]);
             }
