@@ -4,12 +4,12 @@
 var BonsaiCommon = require('./BonsaiCommon.js')
 
 // This function is important for stripping the extra line that is present in some fields
-function removeBottomMargin(str){
-  return str.split('').reverse().join('')
-            .replace( '<p'.split('').reverse().join(''),
-                      '<p style="margin-bottom:0;"'.split('').reverse().join('')
-                    )
-            .split('').reverse().join('');
+// replace last instance of '<p' with '<p style="margin-bottom:0;"'
+function removeBottomMargin(str) {
+  return str
+    .split('').reverse().join('')
+    .replace('<p'.split('').reverse().join(''), '<p style="margin-bottom:0;"'.split('').reverse().join(''))
+    .split('').reverse().join('');
 }
 
 // Strip IObservable and replace 'TSource' with 'Anything' 
@@ -204,14 +204,9 @@ exports.preTransform = function (model) {
   model.bonsai.description = [model.summary, model.remarks].join('');
 
   operatorType = BonsaiCommon.defineOperatorType(model);
-  if (operatorType.source){
-    model.bonsai.operatorType = 'source';
-  }
-  else if (operatorType.sink){
-    model.bonsai.operatorType = 'sink';
-  }
-  else if (operatorType.combinator){
-    model.bonsai.operatorType = 'combinator';
+  
+  if (operatorType.type){
+    model.bonsai.operatorType = operatorType.type
   }
 
   if (operatorType.showWorkflow) {
