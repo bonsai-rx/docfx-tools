@@ -13,8 +13,13 @@ function removeBottomMargin(str) {
 }
 
 // Strip IObservable and replace 'TSource' with 'Anything' 
+// Added a null check to return an empty string to avoid undefined errors in new refactored code
+// Consider replace "Anything" with "Observable" or "Any Observable" with a link to the observable guide
 function replaceIObservableAndTSource(str){
-  if (str.includes('IGroupedObservable')){
+  if (!str) {
+    return '';
+  }
+  else if (str.includes('IGroupedObservable')){
     const re = new RegExp('<a.*IGroupedObservable.*&lt;');
     str = str.replace(re, '').replace('&gt;','').replace('&gt;','').replace('TSource', 'Anything');
   }
@@ -26,48 +31,23 @@ function replaceIObservableAndTSource(str){
   return str;
 }
 
-// compile list of data for input --> o --> output diagrams
+// this function is a revised version of cris's refactored function that restores the original values (specname, description)
+// which were removed
 function defineInputsAndOutputs(model){
-  operators = [];
-  if (model.children){
-    const childrenLength = model.children.length;
-    for (let i = 0; i < childrenLength; i++){
-      if (model.children[i].uid.includes('Generate') || model.children[i].uid.includes('Process')){
-        description = [model.children[i].summary, model.children[i].remarks].join('');
-        input = {};
-        if (model.children[i].syntax.parameters && model.children[i].syntax.parameters[0]){
-          input = {
-            'specName': replaceIObservableAndTSource(model.children[i].syntax.parameters[0].type.specName[0].value),
-            'name': model.children[i].syntax.parameters[0].type.name[0].value.replaceAll(/(IObservable<)|(>)/g, ''),
-            'description': removeBottomMargin([model.children[i].syntax.parameters[0].description, model.children[i].syntax.parameters[0].remarks].join(''))
-          };
-          input.external = true;
-        }
-        if (model.children[i].syntax.return){
-          output = {
-            'specName': replaceIObservableAndTSource(model.children[i].syntax.return.type.specName[0].value),
-            'name': model.children[i].syntax.return.type.name[0].value.replaceAll(/(IObservable<)|(>)/g, ''),
-            'description': removeBottomMargin([model.children[i].syntax.return.description, model.children[i].syntax.return.remarks].join(''))};
-          outputYml = [ '~/api/', 
-                        model.children[i].syntax.return.type.uid.replaceAll(/(\D*{)|(}$)/g, ''),  
-                        '.yml'].join('');
-          if (model['__global']['_shared'][outputYml] && model['__global']['_shared'][outputYml]['children'] && (model['__global']['_shared'][outputYml].type === 'class')){
-            output.internal = true;
-          }
-          else if (!output.internal){
-            output.external = true;
-          }
-        }
-        if (Object.keys(input).length){
-          operators.push({'description': description, 'input': input, 'output': output, 'hasInput': true});
-        }
-        else {
-          operators.push({'description': description, 'output': output});
-        }
+  overloads = model.children
+    .filter(child => child.name[0].value.includes('Process') || child.name[0].value.includes('Generate'))
+    .map(child => ({
+      'description': [child.summary, child.remarks].join(''),
+      'input': {
+        'specName': replaceIObservableAndTSource(child.syntax?.parameters[0].type.specName[0].value),
+        'description': removeBottomMargin([child.syntax?.parameters[0].description, child.syntax?.parameters[0].remarks].join(''))
+       },
+      'output': {
+        'specName': replaceIObservableAndTSource(child.syntax.return.type.specName[0].value),
+        'description': removeBottomMargin([child.syntax.return.description, child.syntax.return.remarks].join('')),
       }
-    }
-  }
-  return operators;
+    }))
+  return overloads;
 }
 
 // compile list of properties
@@ -133,66 +113,38 @@ function defineProperties(model){
   return properties;
 }
 
-// While docfx has an option to sort enum fields alphabetically, it does not have a similar option for class properties
-// and this function provides that.
-function sortProperties(properties){
-  let propertyNames = [];
-  let propertyNamesThatFitPattern = [];
-  const propertiesLength = properties.length;
-  for (let i = 0; i < propertiesLength; i++){
-    propertyNames.push([properties[i].name, 
-                        /\D+\d+$/.test(properties[i].name), 
-                        String(properties[i].name.match(/\D+/)), 
-                        Number(properties[i].name.match(/\d+$/))]);
-  }
-  for (let i = 0; i < propertiesLength; i++){
-    if (propertyNames[i][1]){
-      if (!propertyNamesThatFitPattern.includes(propertyNames[i][2])){
-        propertyNamesThatFitPattern.push(propertyNames[i][2]);
-      }
-    }
-  }
-  const propertyNamesThatFitPatternLength = propertyNamesThatFitPattern.length;
-  for (let j = 0; j < propertyNamesThatFitPatternLength; j++){
-    for (let i = 1; i < propertiesLength; i++){
-      for (let k = i; k > 0; k--){
-        if ((propertyNames[k][2] === propertyNamesThatFitPattern[j]) && (propertyNames[k - 1][2] === propertyNamesThatFitPattern[j])){
-          if (propertyNames[k][3] < propertyNames[k - 1][3]){
-            swapElements(properties, k, k - 1);
-            swapElements(propertyNames, k, k - 1); // why does this need to be here for this sortProperties function to work?
-          }
-        }
-      }
-    }
-  }
-  return properties;
-}
+// Properties are usually already listed in declaration order which mirrors Bonsai UI.
+// However a bug in docfx messes up properties that have a numeric endvalue ie Device10 < Device2
+// and this function fixes that.
+function sortProperties(properties) {
+  return properties.sort((a, b) => {
+    const regex = /\D+|\d+$/g;
 
-const swapElements = (array, index1, index2) => {
-  const temp = array[index1];
-  array[index1] = array[index2];
-  array[index2] = temp;
-};
+    // Extract parts for property 'a'
+    const [prefixA, numberA] = a.name.match(regex);
+    const numA = Number(numberA);
+
+    // Extract parts for property 'b'
+    const [prefixB, numberB] = b.name.match(regex);
+    const numB = Number(numberB);
+
+    // If prefix is the same, compare numbers
+    if (prefixA == prefixB) {
+      return numA - numB;
+    }
+  });
+}
 
 // While enum fields can be accessed directly using the mustache template, this function is
 // still important for stripping the extra line that is present in the summary/remarks field
 function defineEnumFields(model){
-  let enumFields = [];
-  if (model.children){
-    const childrenLength = model.children.length;
-    for (let i = 0; i < childrenLength; i++){
-      if (model.children[i].type === 'field'){
-        enumFields.push({
-          'field&value': model.children[i].syntax.content[0].value,
-          'description': removeBottomMargin([ model.children[i].summary, 
-                                              model.children[i].remarks].join(''))
-        });
-      }
-    }
-  }
-  return enumFields;
+  return model.children
+    .filter(child => child.type === 'field')
+    .map(child => ({
+      'field&value': child.syntax.content[0].value,
+      'enumDescription': removeBottomMargin([child.summary, child.remarks].join(''))
+    }));
 }
-
 
 /**
  * This method will be called at the start of exports.transform in ManagedReference.html.primary.js
@@ -204,9 +156,9 @@ exports.preTransform = function (model) {
   model.bonsai.description = [model.summary, model.remarks].join('');
 
   operatorType = BonsaiCommon.defineOperatorType(model);
-  
+
   if (operatorType.type){
-    model.bonsai.operatorType = operatorType.type
+    model.bonsai.operatorType = operatorType.type;
   }
 
   if (operatorType.showWorkflow) {

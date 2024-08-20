@@ -12,8 +12,7 @@
         <tr style="border: 0px;">
           {{#input}}
           <td style="border: 1px solid; vertical-align: middle; width: 80%; border-color: var(--bs-border-color);">
-            {{#internal}}<h5>{{{specName}}}</a></h5>{{/internal}}
-            {{#external}}<h5>{{{specName}}}</h5>{{/external}}
+            <h5>{{{specName}}}</a></h5>
             {{{description}}}
           </td>
           <td style="text-align: right; vertical-align: middle; margin: 0; padding: 0; width: 20%; border: 0px;">
@@ -39,8 +38,7 @@
             <img src="../bonsai/template/api/images/right-arrow.svg" alt="right-arrow">
           </td>
           <td style="border: 1px solid; vertical-align: middle; width: 80%; border-color: var(--bs-border-color);">
-            {{#output.internal}}<h5>{{{output.specName}}}</a></h5>{{/output.internal}}
-            {{#output.external}}<h5>{{{output.specName}}}</h5>{{/output.external}}
+            <h5>{{{output.specName}}}</a></h5>
             <div>{{{output.description}}}</div>
           </td>
         </tr>
