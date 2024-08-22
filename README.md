@@ -3,7 +3,7 @@
 A repository of docfx tools for Bonsai package documentation:
 - Docfx Workflow Container template patching the modern template to provide stylesheets and scripts for rendering custom workflow containers with copy functionality. 
 - Docfx API TOC template that groups nodes by operator type in the table of contents(TOC) on API pages.
-- Docfx API template that revamps the API page to enhance user-friendliness
+- Docfx API template that revamps the API page to enhance user-friendliness.
 - Powershell Scripts that automate several content generation steps for package documentation websites.
 
 ## How to include
@@ -81,6 +81,8 @@ In addition, the images and custom css styles need to be added to the resources 
     }
 ]
 ```
+To add individual operator workflows for the API pages, open Bonsai, add the operator, and save each individual operator workflow as `OperatorName.bonsai` (case sensitive) in `docs/workflows/operators`.
+
 
 ## Powershell Scripts - Exporting workflow images
 
