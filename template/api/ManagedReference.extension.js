@@ -1,7 +1,22 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-var BonsaiCommon = require('./BonsaiCommon.js')
+// Define Bonsai operator types in documentation by checking for an explicit Category tag. If the class does not provide one,
+// check the inheritance tree of the class. 
+function defineOperatorType(model){
+  const checkForCategory = (category) => model.syntax?.content[0].value.includes(`[WorkflowElementCategory(ElementCategory.${category})]`);
+  const checkInheritance = (inheritance) => model.inheritance?.some(inherited => inherited.uid.includes(inheritance));
+
+  source = checkForCategory('Source') || checkInheritance('Bonsai.Source');
+  sink = checkForCategory('Sink') || checkInheritance('Bonsai.Sink') || checkInheritance('Bonsai.IO.StreamSink') || checkInheritance('Bonsai.IO.FileSink');
+  combinator = checkForCategory('Combinator') || checkInheritance('Bonsai.Combinator') || checkInheritance('Bonsai.WindowCombinator');
+  transform = checkForCategory('Transform') || checkInheritance('Bonsai.Transform') || checkInheritance('Bonsai.Transform');
+
+  let operatorType = {}
+  operatorType.type = sink ? 'sink' : source ? 'source' : transform ? 'transform' : combinator ? 'combinator' :  false ; 
+
+  return operatorType;
+}
 
 // This function is important for stripping the extra line that is present in some fields
 // replace last instance of '<p' with '<p style="margin-bottom:0;"'
@@ -47,76 +62,56 @@ function defineInputsAndOutputs(model){
         'description': removeBottomMargin([child.syntax.return.description, child.syntax.return.remarks].join('')),
       }
     }))
+    .map(item => {
+      // Remove input if it's empty
+      if (!item.input.specName && !item.input.description) {
+        delete item.input;
+      }
+      return item;
+    });
   return overloads;
 }
 
-// compile list of properties
-function defineProperties(model){
-  properties = [];
-  if (model.children){
-    const childrenLength = model.children.length;
-    for (let i = 0; i < childrenLength; i++){
-      if (model.children[i].type === 'property'){
-
-        // This section adds enum fields and values to the property table if the property is an enum
-        // However doesnt always work (In Pulsepal Repo - Outputchannel enum doesnt show sometimes but the others do)
-        // Bug present in original template so need to troubleshoot
-        // Nice to have I think but not critical.
-        potentialEnumYml = '~/api/' + model['children'][i].syntax.return.type.uid + '.yml';
-        let enumFields = [];
-        if (model['__global']['_shared'][potentialEnumYml] && (model['__global']['_shared'][potentialEnumYml]['type'] === 'enum')){
-          enumFields = defineEnumFields(model['__global']['_shared'][potentialEnumYml]);
-        }
-        if (enumFields.length > 0){
-          properties.push({
-            'name': model.children[i].name[0].value, 
-            'type': model.children[i].syntax.return.type.specName[0].value, 
-            'description': removeBottomMargin([model.children[i].summary, model.children[i].remarks].join('')),
-            'enumFields': enumFields,
-            'hasEnum': true
-          });
-        }
-        // This adds the rest of the non-enum properties normally
-        else { 
-          properties.push({
-            'name': model.children[i].name[0].value, 
-            'type': model.children[i].syntax.return.type.specName[0].value, 
-            'description': removeBottomMargin([model.children[i].summary, model.children[i].remarks].join(''))
-          });
-        }
-      }
+// extracts enums so that they can be expanded in the properties table
+function processChildProperty(child, sharedModel) {
+  const enumFields = sharedModel[`~/api/${child.syntax.return.type.uid}.yml`]?.type === 'enum' ?
+    extractEnumData(sharedModel[`~/api/${child.syntax.return.type.uid}.yml`]) :
+    [];
+  return {
+    'name': child.name[0].value,
+    'type': child.syntax.return.type.specName[0].value,
+    'propertyDescription': {
+      'text': enumFields.length > 0
+        ? [child.summary, child.remarks].join('')
+        : removeBottomMargin([child.summary, child.remarks].join('')),
+      'hasEnum': enumFields.length > 0,
+      'enum': enumFields,
     }
   }
-  // This adds properties that belong to the members that it inherits (and which show up in the Bonsai side panel)
-  // On a default docfx website they dont show, so its pretty important.
-  if (model.inheritedMembers){
-    const inheritedMembersLength = model.inheritedMembers.length;
-    for (let i = 0; i < inheritedMembersLength; i++){
-      if (model.inheritedMembers[i].type && (model.inheritedMembers[i].type === 'property')){
-        let inheritedMemberYml = '~/api/' + model.inheritedMembers[i].parent + '.yml';
-        if (model['__global']['_shared'][inheritedMemberYml]['children']){
-          let inheritedMemberChildrenLength = model['__global']['_shared'][inheritedMemberYml]['children'].length;
-          for (let j =  0; j < inheritedMemberChildrenLength; j++){
-            if (model.inheritedMembers[i].uid === model['__global']['_shared'][inheritedMemberYml]['children'][j].uid){
-              properties.push(
-                {'name': model.inheritedMembers[i].name[0].value, 
-                'type': model['__global']['_shared'][inheritedMemberYml]['children'][j].syntax.return.type.specName[0].value, 
-                'description':  removeBottomMargin([model['__global']['_shared'][inheritedMemberYml]['children'][j].summary, 
-                                                    model['__global']['_shared'][inheritedMemberYml]['children'][j].remarks].join(''))
-              });
-            }
-          }
-        }
-      }
-    }
-  }
-  return properties;
 }
+
+function extractPropertiesData(model, sharedModel) {
+  return model?.children
+    .filter(child => child.type === 'property' && child.syntax)
+    .map(child => processChildProperty(child, sharedModel));
+}
+
+function extractPropertiesFromInheritedMembersData(model, sharedModel) {
+  return model.inheritedMembers
+  .filter(inheritedMember => inheritedMember.type === 'property')
+  .map(inheritedMember => {
+    return processChildProperty(
+      sharedModel[`~/api/${inheritedMember.parent}.yml`].children.find(inheritedMemberChild => inheritedMemberChild.uid === inheritedMember.uid),
+      sharedModel
+    );
+  });
+}
+
 
 // Properties are usually already listed in declaration order which mirrors Bonsai UI.
 // However a bug in docfx messes up properties that have a numeric endvalue ie Device10 < Device2
 // and this function fixes that.
-function sortProperties(properties) {
+function sortPropertiesData(properties) {
   return properties.sort((a, b) => {
     const regex = /\D+|\d+$/g;
 
@@ -137,7 +132,7 @@ function sortProperties(properties) {
 
 // While enum fields can be accessed directly using the mustache template, this function is
 // still important for stripping the extra line that is present in the summary/remarks field
-function defineEnumFields(model){
+function extractEnumData(model){
   return model.children
     .filter(child => child.type === 'field')
     .map(child => ({
@@ -155,33 +150,30 @@ exports.preTransform = function (model) {
   
   model.bonsai.description = [model.summary, model.remarks].join('');
 
-  operatorType = BonsaiCommon.defineOperatorType(model);
+  operatorType = defineOperatorType(model);
 
   if (operatorType.type){
     model.bonsai.operatorType = operatorType.type;
-  }
-
-  if (operatorType.showWorkflow) {
-    model.bonsai.showWorkflow = operatorType.showWorkflow;
-  }
-  
-  operators = defineInputsAndOutputs(model);
-  if (operators.length > 0){
+    model.bonsai.showWorkflow = true
+    operators = defineInputsAndOutputs(model);
     model.bonsai.operators = operators;
   }
 
-  properties = defineProperties(model);
-  if (properties.length > 0){
-    model.bonsai.hasProperties = true;
-    model.bonsai.properties = sortProperties(properties);
+  if (model.type === 'class') {
+    properties = sortPropertiesData([
+      ...extractPropertiesData(model, model.__global._shared),
+      ...extractPropertiesFromInheritedMembersData(model, model.__global._shared),
+    ]);
+    if (properties.length > 0){
+      model.bonsai.hasProperties = true;
+      model.bonsai.properties = properties
+    }
   }
 
-  enumFields = defineEnumFields(model);
-  if (enumFields.length > 0){
+  else if (model.type === 'enum') {
+    model.bonsai.enumFields = extractEnumData(model);
     model.bonsai.hasEnumFields = true;
-    model.bonsai.enumFields = enumFields;
   }
-
   return model;
 }
 

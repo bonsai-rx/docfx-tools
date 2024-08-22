@@ -1,0 +1,35 @@
+div.tableFormat *:last-child {
+    margin-bottom: 0;
+  }
+  
+  div.tableFormat table {
+    display: grid;
+    grid-template-columns: auto; 
+    margin-top: 1rem; 
+    margin: 0;
+    padding: 0;
+    border: 0 hidden; 
+    border-collapse: collapse; 
+  }
+  
+  div.tableFormat td {
+    padding: 0;
+    border: 0 hidden;
+  }
+  
+  div.tableFormat td.term {
+    /* !important tag prevents overrides from dotnet.css associated with:
+     body[data-yaml-mime="ManagedReference"] article td.term, body[data-yaml-mime="ApiPage"] article td.term 
+     important tags not good practice*/
+    font-weight: var(--bs-body-font-weight) !important; 
+    white-space: nowrap;
+  }
+  
+  div.tableFormat td.description {
+    padding-left: 1rem;
+  }
+  
+  .quick-links > .table-responsive > table.table.table-bordered.table-condensed {
+    border: 0px hidden transparent;
+  }
+  

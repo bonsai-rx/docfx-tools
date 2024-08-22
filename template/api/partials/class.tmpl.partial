@@ -1,3 +1,5 @@
+<link rel="stylesheet" type="text/css" href="../bonsai/template/api/styles/styles.css" />
+
 {{#isClass}}
 
 <div>

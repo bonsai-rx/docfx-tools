@@ -9,18 +9,21 @@
     </td>
 
     <td>
-        {{{description}}}
-
-        {{#hasEnum}}
-        <dl style="margin-top: 1rem; margin-bottom: 0rem; display: grid; grid-template-columns: max-content auto;">
-
-            {{#enumFields}}
-            <dt style="grid-column-start: 1;"><code>{{{field&value}}}</code></dt>
-            <dd style="grid-column-start: 2; margin-bottom: 0rem;">{{{description}}}</dd>
-            {{/enumFields}}
-
-        </dl>
-        {{/hasEnum}}
-
+        <div class="tableFormat" style="border: 0 hidden">
+            {{#propertyDescription}}
+            {{{propertyDescription.text}}}
+            {{#hasEnum}}
+            <table>
+                {{#enum}}
+                <tr>
+                    <td class="term"><code>{{{field&value}}}</code></td>
+                    <td class="description">{{{enumDescription}}}</td>
+                </tr>
+                {{/enum}}
+            </table>
+            {{/hasEnum}}
+            {{/propertyDescription}}
+        </div>
     </td>
+
 </tr>
