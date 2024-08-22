@@ -1,16 +1,22 @@
 # docfx-tools
 
-A docfx template for package documentation, patching the modern template to provide stylesheets and scripts for rendering custom workflow containers with copy functionality.
+A repository of docfx tools for Bonsai package documentation:
+- Docfx Workflow Container template patching the modern template to provide stylesheets and scripts for rendering custom workflow containers with copy functionality. 
+- Docfx API TOC template that groups nodes by operator type in the table of contents(TOC) on API pages.
+- Docfx API template that revamps the API page to enhance user-friendliness
+- Powershell Scripts that automate several content generation steps for package documentation websites.
 
-## How to use
+## How to include
 
-To include this template in a docfx website, first clone this repository as a submodule:
+To include this repo in a docfx website, first clone this repository as a submodule:
 
 ```
 git submodule add https://github.com/bonsai-rx/docfx-tools bonsai
 ```
 
-Then modify `docfx.json` to include the template immediately after the modern template:
+## Using Workflow Container Template
+
+Modify `docfx.json` to include the template immediately after the modern template:
 
 ```json
     "template": [
@@ -38,12 +44,45 @@ export default {
     }
 }
 ```
+## Using API TOC Template and API template
 
-## Powershell Scripts
+Currently these two templates are bundled together, as the API TOC template relies on an extension that is used by the API template.
 
-This repository also provides helper scripts to automate several content generation steps for package documentation websites.
+For the API TOC template especially, the local installation of docfx needs to be updated to >= v2.77.0.
 
-### Exporting workflow images
+```ps1
+dotnet tool update docfx
+```
+
+Modify `docfx.json` to include the api template in the template section (note both the workflow container and API TOC template have to be added separately).
+
+```json
+"template": [
+  "default",
+  "modern",
+  "bonsai/template", 
+  "bonsai/template/api", 
+  "template"
+]
+```
+In addition, the images and custom css styles need to be added to the resources section.
+
+```json
+"resource": [
+    {
+    "files": [
+        "logo.svg",
+        "favicon.ico",
+        "images/**",
+        "workflows/**",
+        "bonsai/template/api/images/**",
+        "bonsai/template/api/styles/**"
+    ]
+    }
+]
+```
+
+## Powershell Scripts - Exporting workflow images
 
 Exporting SVG images for all example workflows can be automated by placing all `.bonsai` files in a `workflows` folder and calling the below script pointing to the bin directory to include. A bonsai environment is assumed to be available in the `.bonsai` folder in the repository root.
 
