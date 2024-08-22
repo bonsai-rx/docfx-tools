@@ -29,18 +29,19 @@ function removeBottomMargin(str) {
 
 // Strip IObservable and replace 'TSource' with 'Anything' 
 // Added a null check to return an empty string to avoid undefined errors in new refactored code
-// Consider replace "Anything" with "Observable" or "Any Observable" with a link to the observable guide
+// Added links to Bonsai user guide on operators 
 function replaceIObservableAndTSource(str){
+  const observableLink = '<a href="https://bonsai-rx.org/docs/articles/observables.html">Observable</a>'
   if (!str) {
     return '';
   }
   else if (str.includes('IGroupedObservable')){
     const re = new RegExp('<a.*IGroupedObservable.*&lt;');
-    str = str.replace(re, '').replace('&gt;','').replace('&gt;','').replace('TSource', 'Anything');
+    str = str.replace(re, '').replace('&gt;','').replace('&gt;','').replace('TSource', observableLink);
   }
   else if (str.includes('IObservable')){
     const re = new RegExp('<a.*IObservable.*&lt;');
-    str = str.replace(re, '').replace('&gt;','').replace('TSource', 'Anything');
+    str = str.replace(re, '').replace('&gt;','').replace('TSource', observableLink);
     // can't combine re and '&gt;' into the same regex and do replaceAll because some classes have have two '&gt' in which case one of them is necessary
   }
   return str;

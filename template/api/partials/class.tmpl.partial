@@ -9,7 +9,7 @@
   </h1>
   {{#bonsai.operatorType}}
   <p style="display: inline; text-transform: capitalize"> 
-    {{bonsai.operatorType}} Operator
+    <a href = "https://bonsai-rx.org/docs/articles/operators.html"> {{bonsai.operatorType}} Operator </a>
   </p>
   {{/bonsai.operatorType}}
 </div>
