@@ -44,17 +44,9 @@ export default {
     }
 }
 ```
-## Using API TOC Template and API template
+## Using API template
 
-Currently these two templates are bundled together, as the API TOC template relies on an extension that is used by the API template.
-
-For the API TOC template especially, the local installation of docfx needs to be updated to >= v2.77.0.
-
-```ps1
-dotnet tool update docfx
-```
-
-Modify `docfx.json` to include the api template in the template section (note both the workflow container and API TOC template have to be added separately).
+Modify `docfx.json` to include the api template in the template section (note both the workflow container and API template have to be added separately).
 
 ```json
 "template": [
