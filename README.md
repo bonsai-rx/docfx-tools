@@ -51,14 +51,14 @@ The local installation of docfx needs to be updated to >= v2.77.0.
 dotnet tool update docfx
 ```
 
-Modify `docfx.json` to include the api template (note both the workflow container and API TOC template have to be added separately).
+Modify `docfx.json` to include the api-toc template (note both the workflow container and API TOC template have to be added separately).
 
 ```json
 "template": [
   "default",
   "modern",
   "bonsai/template", 
-  "bonsai/template/api", 
+  "bonsai/template/apitoc", 
   "template"
 ]
 ```
