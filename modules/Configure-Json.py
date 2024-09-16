@@ -77,8 +77,7 @@ data["build"]["markdownEngineProperties"] = {"markdigExtensions": ["attributes",
                                                                    "customcontainers"]}
 
 # adds xref 
-data["build"]["xref"] = ["https://bonsai-rx.org/docs/xrefmap.yml",
-                         "https://horizongir.github.io/reactive/xrefmap.yml"]
+data["build"]["xref"] = ["https://bonsai-rx.org/docs/xrefmap.yml"]
 
 # write json file
 with open(os.path.join(docs_dir, "docfx.json"), 'w') as file:
