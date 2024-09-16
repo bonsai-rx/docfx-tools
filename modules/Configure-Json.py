@@ -18,9 +18,6 @@ except FileNotFoundError:
 # prompt for github website
 github_link = input("Please enter the github website")
 
-# prompt for package name
-package_name = input("Please enter the package name for the website - for instance ML for Bonsai.ML")
-
 # adds filter .yml to metadata build
 # the structure in the attributes is a bit weird, its a dictionary in a list, so the index [0] is just calling up that dictionary
 data["metadata"][0]["filter"] = "filter.yml"
@@ -66,10 +63,6 @@ if "template" in data["build"]["template"]:
     pass
 else:
     data["build"]["template"].extend(["template"])
-
-# adds app name and website
-data["build"]["globalMetadata"]["_appName"] = "Bonsai - " + package_name
-data["build"]["globalMetadata"]["_appTitle"] = "Bonsai." + package_name
 
 # adds site footer
 data["build"]["globalMetadata"]["_appFooter"] = "&copy; 2024 Bonsai Foundation CIC and Contributors. Made with <a href=\"https://dotnet.github.io/docfx\">docfx</a>"
