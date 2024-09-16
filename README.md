@@ -51,7 +51,10 @@ Exporting SVG images for all example workflows can be automated by placing all `
 .\modules\Export-Image.ps1 "..\src\PackageName\bin\Release\net472"
 ```
 
-## Python Notebooks
+## Configure Json
 
-This repository also provides two helper python notebooks to help configure Docfx.json as well as to copy the necessary files and folders for building a new Docfx website.
-These notebooks need a base python 3 installation only and no external libraries need to be installed (other than Jupyter Notebook).
+This script modifies `docfx.json` to reproduce the customisation options that are most frequently applied for Bonsai package documentation websites. Call the script with the following command and enter details when prompted:
+
+```ps1
+python .\modules\Configure-Json.py
+```
