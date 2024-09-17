@@ -13,10 +13,12 @@ try:
     with open(os.path.join(docs_dir, "docfx.json"), 'r') as file:
         data = json.load(file)
 except FileNotFoundError:
-    print("docfx.json not file, run docfx first to create docfx.json file")
+    exit_string = "expected docfx.json at " + (os.path.join(docs_dir, "docfx.json") + ", run docfx first to create docfx.json file")
+    print(exit_string)
+    os.exit(1)
 
 # prompt for github website
-github_link = input("Please enter the github website")
+github_link = input("Please enter the github website: ")
 
 # adds filter .yml to metadata build
 # the structure in the attributes is a bit weird, its a dictionary in a list, so the index [0] is just calling up that dictionary
