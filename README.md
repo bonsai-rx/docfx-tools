@@ -53,10 +53,10 @@ Exporting SVG images for all example workflows can be automated by placing all `
 
 ## Configure Json
 
-This script modifies `docfx.json` to reproduce the customisation options that are most frequently applied for Bonsai package documentation websites. This script assumes a (python)[https://www.python.org/downloads/] installation. Call the script with the following command and enter details when prompted:
+This script modifies `docfx.json` to reproduce the customisation options that are most frequently applied for Bonsai package documentation websites. This script assumes a (python)[https://www.python.org/downloads/] installation. Use the script on a  newly created `docfx.json` file:
 
 ```ps1
-python .\modules\Configure-Json.py
+python Configure-Json.py
 ```
 
-Verify the modified `docfx.json` for accuracy, especially for external developers, since the script was made for internal development.
+Verify the modified `docfx.json` and amend as necessary (especially for external Bonsai developers).
