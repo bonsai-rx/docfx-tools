@@ -20,9 +20,12 @@ except FileNotFoundError:
 # Make sure a filter.yml is created in docs/filter.yml
 data["metadata"][0]["filter"] = "filter.yml"
 
-# Exclude filter.yml from site building
-if "filter.yml" not in data["build"]["content"][0]["exclude"]:
-    data["build"]["content"][0]["exclude"].append("filter.yml")
+# Exclude filter.yml and apidoc folder from build process
+# apidoc- this avoids duplicate UID errors from files in the apidoc
+# The overwrite mechanism still works
+data["build"]["content"][0]["exclude"].extend(
+    [file for file in ["filter.yml","apidoc/**"] if file not in data["build"]["content"][0]["exclude"]]
+)
                                                   
 # Imports site resources
 data["build"]["resource"][0]["files"].extend(
