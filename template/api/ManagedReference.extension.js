@@ -98,6 +98,11 @@ function extractPropertiesData(model, sharedModel) {
 }
 
 function extractPropertiesFromInheritedMembersData(model, sharedModel) {
+  // Ensure inheritedMembers exists and is an array before filtering
+  // Important for IncludeWorkflow operators which currently do not have any inherited members
+  if (!Array.isArray(model.inheritedMembers)) {
+    return [];
+  }
   return model.inheritedMembers
   .filter(inheritedMember => inheritedMember.type === 'property')
   .map(inheritedMember => {
