@@ -1,5 +1,8 @@
+# add yaml flag and check to prevent modification of already modified files 
 import os
 import yaml
+import json
+import xml.etree.ElementTree as ET
 
 def find_bonsai_files(src_folder):
     """Search for all .bonsai files in the src folder and return their paths."""
@@ -72,6 +75,8 @@ def generate_toc_entries(bonsai_files, src_folder):
             'namespace': namespace,
             'uid': uid,
             'name': name,
+            'file': file,
+            'properties': extract_properties(file)
         })
     
     return toc_entries
@@ -84,9 +89,56 @@ def save_toc(toc_path, toc_items):
 
         yaml.dump(toc_items, f, default_flow_style=False, sort_keys=False)
 
+def patch_manifest(manifest_path, new_entries):
+    with open(manifest_path, 'r') as f:
+        manifest_data = json.load(f)
+    for entry in new_entries:
+        manifest_data[entry['uid']] =  entry['uid']+".yml"
+        #generate manifest entries for operator properties
+        for key in entry['properties'].keys():
+            manifest_data[entry['uid']+"."+key] = entry['uid']+".yml"
+    with open(manifest_path, 'w') as f:
+        json.dump(manifest_data, f, indent=2, sort_keys=True)
+
+def extract_properties(entry):
+    properties = []
+    
+    tree = ET.parse(entry)
+    root = tree.getroot()
+
+    # Get XML namespaces and prefixes
+    xml_namespace = {}
+    for event, elem in ET.iterparse(entry, ["start-ns"]):
+         xml_namespace[elem[0]] = elem[1]
+
+    # Get the default namespace from the XML (no prefix)
+    default_ns = xml_namespace['']  
+
+    # Build the full tag name for 'Expression' with the namespace
+    expression_tag = f"{{{default_ns}}}Expression"  # e.g., "{https://bonsai-rx.org/2018/workflow}Expression"
+
+    # Find all visible 'Properties' based on xsi:type Externalized Mapping"
+    # Note - it seems that some properties are hidden which I did not realise.
+    # For instance see EventLogger
+    property_dict = {}
+    for expression in root.findall(f".//{expression_tag}", xml_namespace):
+        xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
+        if xsi_type == "ExternalizedMapping":
+            for prop in expression.findall(f"{{{default_ns}}}Property"):
+                property_name = prop.get('Name')
+                description = prop.get('Description', "No description available.")
+                display_name = prop.get('DisplayName', False)
+                if display_name == False:
+                    property_dict[property_name] = description
+                else:
+                    property_dict[display_name] = description
+    return property_dict
+
+
 def main():
     src_folder = "../src"  # Adjust if your src folder is in a different location
     toc_path = "api/toc.yml"  # Path to the existing TOC file
+    manifest_path ="api/.manifest" 
 
     # Find all .bonsai files in the src folder
     bonsai_files = find_bonsai_files(src_folder)
@@ -104,7 +156,10 @@ def main():
     # Save the updated TOC file
     save_toc(toc_path, patched_toc)
 
-    print(f"Successfully updated {toc_path}.")
+    # Patch manifest
+    patch_manifest(manifest_path, new_entries)
+
+    print(f"Successfully updated {toc_path}, {manifest_path}. ")
 
 if __name__ == "__main__":
     main()
