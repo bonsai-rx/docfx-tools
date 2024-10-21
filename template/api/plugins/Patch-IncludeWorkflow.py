@@ -1,4 +1,9 @@
-# add yaml flag and check to prevent modification of already modified files 
+# README: this script modifies several accessory files that seem to be needed for getting IncludeWorkflows
+# recognised in dotnet build. Gnerating individual api yml files for the .bonsai IncludeWorkflows
+# isnt enough as the API template relies on certain shared models that don't build correctly
+# TODO: add yaml flag and check to prevent modification of already modified files 
+# TODO: make it more efficient (too many loops of new entries in each separate function)
+
 import os
 import yaml
 import json
@@ -62,16 +67,16 @@ def patch_toc(toc_data, new_entries):
             namespace_map[namespace] = new_namespace_entry 
     return toc_data
 
-def generate_toc_entries(bonsai_files, src_folder):
-    """Generate TOC entries from the list of bonsai files."""
-    toc_entries = []
+def generate_entries(bonsai_files, src_folder):
+    """Generate entries from the list of bonsai files."""
+    new_entries = []
     
     for file in bonsai_files:
         name = os.path.splitext(os.path.basename(file))[0]
         namespace = extract_namespace(file, src_folder)
         uid = namespace + "." + name
         
-        toc_entries.append({
+        new_entries.append({
             'namespace': namespace,
             'uid': uid,
             'name': name,
@@ -79,14 +84,57 @@ def generate_toc_entries(bonsai_files, src_folder):
             'properties': extract_properties(file)
         })
     
-    return toc_entries
+    return new_entries
+
+def patch_namespace_files(new_entries, api_folder):
+    for entry in new_entries:
+        namespace_file = os.path.join(api_folder, entry['namespace']+".yml")
+        if os.path.exists(namespace_file):
+            pass
+        else:
+            # generate new namespace.yml file if it isnt present
+            # some items in namespace files dont appear as .cs files 
+            # for instance bonvision collections has GratingTrial and GratingParameters
+            # even though there are no .cs files
+            # they are present as classes in CreateGratingTrial and GratingSpecifications specifically
+            new_namespace_file = {}
+            new_namespace_file["items"]=[{
+                'uid': entry['namespace'],
+                'commentId': "N:"+entry['namespace'],
+                'id': entry['namespace'],
+                'children': [],
+                'langs': ['csharp','vb'],
+                'name': entry['namespace'],
+                'nameWithType': entry['namespace'],
+                'fullName': entry['namespace'],
+                'type': "Namespace",
+                'assemblies': [entry['namespace'].split('.')[0]]
+            }]
+            new_namespace_file["references"]=[]
+            with open(namespace_file, 'w') as f:
+                f.write("### YamlMime:ManagedReference\n")
+                yaml.dump(new_namespace_file, f, default_flow_style=False, sort_keys=False)
+        with open(namespace_file, 'r') as f:
+            namespace_file_to_amend = yaml.safe_load(f)
+            namespace_file_to_amend["items"][0]['children'].append(entry['uid'])
+            namespace_file_to_amend["references"].append({
+                'uid': entry['uid'],
+                'commentId': "T:"+entry['uid'],
+                'href': entry['uid']+".html",
+                'name': entry['name'],
+                'nameWithType': entry['name'],
+                'fullName': entry['uid']
+            })
+        with open(namespace_file, 'w') as f:
+            f.write("### YamlMime:ManagedReference\n")
+            yaml.dump(namespace_file_to_amend, f, default_flow_style=False, sort_keys=False)
+            
 
 def save_toc(toc_path, toc_items):
     """Save the patched TOC file."""
     with open(toc_path, 'w') as f:
         # Write the magic header
         f.write("### YamlMime:TableOfContent\n")
-
         yaml.dump(toc_items, f, default_flow_style=False, sort_keys=False)
 
 def patch_manifest(manifest_path, new_entries):
@@ -139,27 +187,31 @@ def main():
     src_folder = "../src"  # Adjust if your src folder is in a different location
     toc_path = "api/toc.yml"  # Path to the existing TOC file
     manifest_path ="api/.manifest" 
+    api_folder = "api/"
 
     # Find all .bonsai files in the src folder
     bonsai_files = find_bonsai_files(src_folder)
     print(f"Found {len(bonsai_files)} .bonsai files.")
 
-    # Generate TOC entries
-    new_entries = generate_toc_entries(bonsai_files, src_folder)
+    # Generate entries from bonsai files
+    new_entries = generate_entries(bonsai_files, src_folder)
+
+    # Patch namespace.yml files
+    patch_namespace_files(new_entries, api_folder)
 
     # Load the existing TOC file
     toc_items = load_existing_toc(toc_path)
 
-    # # Patch the TOC with new entries
+    # Patch the TOC with new entries
     patched_toc = patch_toc(toc_items, new_entries)
 
     # Save the updated TOC file
     save_toc(toc_path, patched_toc)
 
-    # Patch manifest
+    # Patch manifest with new entries
     patch_manifest(manifest_path, new_entries)
 
-    print(f"Successfully updated {toc_path}, {manifest_path}. ")
+    print(f"Successfully updated {toc_path}, {manifest_path}, and namespace.yml files")
 
 if __name__ == "__main__":
     main()
