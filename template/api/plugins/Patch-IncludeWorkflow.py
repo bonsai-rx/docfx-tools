@@ -86,6 +86,95 @@ def generate_entries(bonsai_files, src_folder):
     
     return new_entries
 
+def get_git_information():
+    branch_name = ""
+    repo_url = ""
+    with open("../.git/HEAD", "r") as f:
+        content = f.read().strip()
+        if content.startswith("ref:"):
+            branch_name = content.split("/")[-1]
+    with open("../.git/config", "r") as f:
+        for line in f:
+            if "url = " in line:
+                repo_url = line.split("=", 1)[1].strip()
+                break
+    return(branch_name, repo_url)
+
+
+def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
+    for entry in bonsai_entries:
+        bonsai_yml_file = os.path.join(api_folder, entry['uid']+".yml")
+        new_bonsai_yml_file = {}
+        new_bonsai_yml_file["items"]=[{
+                'uid': entry['uid'],
+                'commentId': "T:"+entry['uid'],
+                'id': entry['name'],
+                'parent': entry['namespace'],
+                'children': [entry['uid'] + "." + x for x in entry['properties']],
+                'langs': ['csharp','vb'],
+                'name': entry['name'],
+                'nameWithType': entry['name'],
+                'fullName': entry['uid'],
+                'type': "Class",
+                'source': {
+                    'remote':{
+                        'path':entry['file'][3:],
+                        'branch':branch_name, 
+                        'repo':repo_url
+                        }, 
+                    'id': entry['name'], 
+                    'path': entry['file'],
+                    # this isn't accurate but is hardcoded here because I don't think it affects anything
+                    'startLine': 9
+                    },
+                'assemblies': [entry['namespace'].split('.')[0]],
+                'namespace': entry['namespace'],
+                'syntax':{
+                    'content': "public class " + entry['name'],
+                    'content.vb': "Public Class " + entry['name']
+                },
+                # this isn't applicable but just added it in case it is needed
+                'inheritance': ['System.Object'],
+                'inheritedMembers': ['System.Object.GetType'],
+            }]
+        for property_name, description in entry['properties'].items():
+            new_bonsai_yml_file["items"].append({
+                'uid':entry['uid']+"." + property_name,
+                'commentId': 'P:'+ entry['uid']+"." + property_name,
+                'id': property_name,
+                'parent': entry['uid'],
+                'langs': ['csharp','vb'],
+                'name': property_name,
+                'nameWithType': entry['name']+'.'+property_name,
+                'fullName': entry['uid']+'.'+property_name,
+                'type':'Property',
+                'source': {
+                    'remote':{
+                        'path':entry['file'][3:],
+                        'branch':branch_name, 
+                        'repo':repo_url
+                        }, 
+                    'id': property_name, 
+                    'path': entry['file'],
+                    # this isn't accurate but is hardcoded here because I don't think it affects anything
+                    'startLine': 9
+                },
+                'assemblies': [entry['namespace'].split('.')[0]],
+                'namespace': entry['namespace'],
+                # this should probably be tailored for each property
+                'syntax':{
+                    'content': 'public float ' + property_name,
+                    'parameters': [],
+                    'return': {'type': 'System.Single'},
+                    'content.vb': "Public Property " + property_name + " As Single"
+                },
+                'overload': entry['uid']+'.'+ property_name +'*'
+            })
+        
+        with open(bonsai_yml_file, 'w') as f:
+            f.write("### YamlMime:ManagedReference\n")
+            yaml.dump(new_bonsai_yml_file, f, default_flow_style=False, sort_keys=False)
+
 def patch_namespace_files(new_entries, api_folder):
     for entry in new_entries:
         namespace_file = os.path.join(api_folder, entry['namespace']+".yml")
@@ -195,6 +284,16 @@ def main():
 
     # Generate entries from bonsai files
     new_entries = generate_entries(bonsai_files, src_folder)
+
+    # for entry in new_entries:
+    #     print(entry)
+
+    # Get git information to populate yml source field
+    branch_name, repo_url = get_git_information()
+
+    # Create Bonsai Yml Files
+    create_bonsai_yml(new_entries, api_folder, branch_name, repo_url)
+    print(f"Successfully created .bonsai yml files in {api_folder}")
 
     # Patch namespace.yml files
     patch_namespace_files(new_entries, api_folder)
