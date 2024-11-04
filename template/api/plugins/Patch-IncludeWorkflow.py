@@ -133,9 +133,10 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                     'content': "public class " + entry['name'],
                     'content.vb': "Public Class " + entry['name']
                 },
-                # this isn't applicable but just added it in case it is needed
-                'inheritance': ['System.Object'],
-                'inheritedMembers': ['System.Object.GetType'],
+                # # this isn't applicable for bonsai files but added it in to avoid mref.extension.js errors
+                # # TODO: maybe make that section of the code more robust to missing fields
+                # 'inheritance': ['System.Object'],
+                # 'inheritedMembers': ['System.Object.GetType'],
             }]
         for property_name, description in entry['properties'].items():
             new_bonsai_yml_file["items"].append({
@@ -170,6 +171,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 },
                 'overload': entry['uid']+'.'+ property_name +'*'
             })
+        #
         
         with open(bonsai_yml_file, 'w') as f:
             f.write("### YamlMime:ManagedReference\n")
