@@ -3,6 +3,7 @@
 # isnt enough as the API template relies on certain shared models that don't build correctly
 # TODO: add yaml flag and check to prevent modification of already modified files 
 # TODO: make it more efficient (too many loops of new entries in each separate function)
+# requirements: pyyaml (install with pip install pyyaml)
 
 import os
 import yaml
@@ -105,7 +106,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
     for entry in bonsai_entries:
         bonsai_yml_file = os.path.join(api_folder, entry['uid']+".yml")
         new_bonsai_yml_file = {}
-        new_bonsai_yml_file["items"]=[{
+        new_bonsai_yml_file['items']=[{
                 'uid': entry['uid'],
                 'commentId': "T:"+entry['uid'],
                 'id': entry['name'],
@@ -138,8 +139,9 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 # 'inheritance': ['System.Object'],
                 # 'inheritedMembers': ['System.Object.GetType'],
             }]
+        # adds properties
         for property_name, description in entry['properties'].items():
-            new_bonsai_yml_file["items"].append({
+            new_bonsai_yml_file['items'].append({
                 'uid':entry['uid']+"." + property_name,
                 'commentId': 'P:'+ entry['uid']+"." + property_name,
                 'id': property_name,
@@ -171,7 +173,68 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 },
                 'overload': entry['uid']+'.'+ property_name +'*'
             })
-        #
+
+        # adds references
+        # adds parent reference
+        new_bonsai_yml_file['references']=[{
+                'uid': entry['namespace'],
+                'commentId': "N:"+entry['namespace'],
+                'href': entry['namespace'].split('.')[0]+".html",
+                'name': entry['namespace'],
+                'nameWithType': entry['namespace'],
+                'fullName': entry['namespace'],
+        }]
+        # this section modifies the parent reference to include additional information if the parent isn't the root namespace
+        # Works for 2 namespaces (like Bonvision.Collections), will there be instances where theres more than 2?
+        if entry['namespace'].split('.')[0] != entry['namespace']:
+            new_bonsai_yml_file['references'][0]['spec.csharp'] = [{
+                'uid': entry['namespace'].split('.')[0],
+                'name': entry['namespace'].split('.')[0],
+                'href': entry['namespace'].split('.')[0]+".html"
+                },{
+                'name':'.'
+                },{
+                'uid': entry['namespace'],
+                'name': entry['namespace'].split('.')[1],
+                'href': entry['namespace']+".html"
+                }]
+            new_bonsai_yml_file['references'][0]['spec.vb'] = [{
+                'uid': entry['namespace'].split('.')[0],
+                'name': entry['namespace'].split('.')[0],
+                'href':entry['namespace'].split('.')[0]+".html"
+                },{
+                'name':'.'
+                },{
+                'uid': entry['namespace'],
+                'name': entry['namespace'].split('.')[1],
+                'href': entry['namespace']+".html"
+                }]
+        
+        # adds return value reference
+        new_bonsai_yml_file['references'].append({
+                'uid': 'System.Single',
+                'commentId': 'T:System.Single',
+                'parent': 'System',
+                'isExternal': 'true',
+                'href': 'https://learn.microsoft.com/dotnet/api/system.single',
+                'name': 'float',
+                'nameWithType': 'float',
+                'fullName': 'float',
+                'nameWithType.vb': 'Single',
+                'fullName.vb': 'Single',
+                'name.vb': 'Single'
+        })
+
+        # adds properties overload references
+        for property_name, description in entry['properties'].items():
+            new_bonsai_yml_file['references'].append({
+                'uid':entry['uid']+'.'+ property_name +'*',
+                'commentId': 'Overload:'+ entry['uid']+'.'+ property_name,
+                'href': entry['uid']+'.html#'+entry['uid'].replace('.', '_')+'_'+property_name,
+                'name': property_name,
+                'nameWithType': entry['name']+'.'+property_name,
+                'fullName': entry['uid']+'.'+property_name,
+            })
         
         with open(bonsai_yml_file, 'w') as f:
             f.write("### YamlMime:ManagedReference\n")
