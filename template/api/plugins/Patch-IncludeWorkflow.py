@@ -76,13 +76,15 @@ def generate_entries(bonsai_files, src_folder):
         name = os.path.splitext(os.path.basename(file))[0]
         namespace = extract_namespace(file, src_folder)
         uid = namespace + "." + name
+        operator_description, properties = extract_information_from_bonsai(file)
         
         new_entries.append({
             'namespace': namespace,
             'uid': uid,
             'name': name,
             'file': file,
-            'properties': extract_properties(file)
+            'operator_description': operator_description,
+            'properties': properties
         })
     
     return new_entries
@@ -130,6 +132,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                     },
                 'assemblies': [entry['namespace'].split('.')[0]],
                 'namespace': entry['namespace'],
+                'summary': entry['operator_description'],
                 'syntax':{
                     'content': "public class " + entry['name'],
                     'content.vb': "Public Class " + entry['name']
@@ -140,7 +143,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 # 'inheritedMembers': ['System.Object.GetType'],
             }]
         # adds properties
-        for property_name, description in entry['properties'].items():
+        for property_name, property_description in entry['properties'].items():
             new_bonsai_yml_file['items'].append({
                 'uid':entry['uid']+"." + property_name,
                 'commentId': 'P:'+ entry['uid']+"." + property_name,
@@ -164,6 +167,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 },
                 'assemblies': [entry['namespace'].split('.')[0]],
                 'namespace': entry['namespace'],
+                'summary': property_description,
                 # this should probably be tailored for each property
                 'syntax':{
                     'content': 'public float ' + property_name,
@@ -302,7 +306,7 @@ def patch_manifest(manifest_path, new_entries):
     with open(manifest_path, 'w') as f:
         json.dump(manifest_data, f, indent=2, sort_keys=True)
 
-def extract_properties(entry):
+def extract_information_from_bonsai(entry):
     properties = []
     
     tree = ET.parse(entry)
@@ -315,6 +319,12 @@ def extract_properties(entry):
 
     # Get the default namespace from the XML (no prefix)
     default_ns = xml_namespace['']  
+
+    # Build the tag name for 'Description'
+    description_tag = f"{{{default_ns}}}Description"
+
+    # Extract description
+    operator_description = root.find(description_tag).text
 
     # Build the full tag name for 'Expression' with the namespace
     expression_tag = f"{{{default_ns}}}Expression"  # e.g., "{https://bonsai-rx.org/2018/workflow}Expression"
@@ -334,7 +344,7 @@ def extract_properties(entry):
                     property_dict[property_name] = description
                 else:
                     property_dict[display_name] = description
-    return property_dict
+    return operator_description, property_dict
 
 
 def main():
@@ -349,9 +359,6 @@ def main():
 
     # Generate entries from bonsai files
     new_entries = generate_entries(bonsai_files, src_folder)
-
-    # for entry in new_entries:
-    #     print(entry)
 
     # Get git information to populate yml source field
     branch_name, repo_url = get_git_information()
