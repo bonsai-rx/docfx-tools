@@ -9,6 +9,7 @@ import os
 import yaml
 import json
 import xml.etree.ElementTree as ET
+import re
 
 def find_bonsai_files(src_folder):
     """Search for all .bonsai files in the src folder and return their paths."""
@@ -306,10 +307,23 @@ def patch_manifest(manifest_path, new_entries):
     with open(manifest_path, 'w') as f:
         json.dump(manifest_data, f, indent=2, sort_keys=True)
 
-def extract_information_from_cs(operator_name, property_name, src_folder):
-    with open(entry, "r", encoding="utf-8") as file:
-        content = file.read()
-        print(content)  # Prints the entire content of the C# file
+def extract_information_from_cs(property_namespace, property_assembly, src_folder, property_name):
+    filename = os.path.join(src_folder, property_namespace, f"{property_assembly}.cs")
+    with open(filename, "r", encoding="utf-8") as file:
+        for line in file:
+            line = line.strip()
+            # Check if the line is a Description attribute
+            if line.startswith("[Description("):
+                # Extract the description text within quotes
+                # Might need to update it to pull XML summary descriptions for newer operators
+                description = re.search(r'\[Description\("([^"]*)"\)\]', line).group(1)
+            if property_name in line:
+                break
+    return description
+
+def extract_information_from_package(property_namespace, property_assembly, src_folder, property_name):
+    pass
+
 
 def extract_information_from_bonsai(entry, src_folder, method, property_name = None, display_name = False):
     properties = []
@@ -369,7 +383,7 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                     if description == False:
                         for file in include_workflow_list:
                             description = extract_information_from_bonsai(file, src_folder, "parse_sub", property_name, display_name)
-                            print("Checking: ", file, "for:", property_name, "in:", entry, description)
+                            # print("Checking: ", file, "for:", property_name, "in:", entry, description)
 
                     # If the previous section fails, it checks other operator files
                     if description == False:
@@ -384,10 +398,13 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                                         # print(entry, property_name, display_name, property_source, description)
                                         property_namespace = xml_namespace[property_source.split(':')[0]].split('=')[1]
                                         property_assembly = property_source.split(':')[1]
+                                        # print(entry, property_name, display_name, property_source, property_namespace, property_assembly)
 
                                         # this line checks if the property is in the src operator files
-                                        # if property_namespace in entry:
-                                        #     extract_information_from_cs(operator_name, property_name, src_folder)
+                                        if property_namespace in entry:
+                                            description = extract_information_from_cs(property_namespace, property_assembly, src_folder, property_name)
+                                        else:
+                                            description = extract_information_from_package(property_namespace, property_assembly, src_folder, property_name)
 
                                     # description = extract_information_from_cs(file, src_folder, property_name)
 
