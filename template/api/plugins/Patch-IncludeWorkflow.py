@@ -306,7 +306,12 @@ def patch_manifest(manifest_path, new_entries):
     with open(manifest_path, 'w') as f:
         json.dump(manifest_data, f, indent=2, sort_keys=True)
 
-def extract_information_from_bonsai(entry, src_folder, method, property = None):
+def extract_information_from_cs(operator_name, property_name, src_folder):
+    with open(entry, "r", encoding="utf-8") as file:
+        content = file.read()
+        print(content)  # Prints the entire content of the C# file
+
+def extract_information_from_bonsai(entry, src_folder, method, property_name = None, display_name = False):
     properties = []
     
     tree = ET.parse(entry)
@@ -317,7 +322,8 @@ def extract_information_from_bonsai(entry, src_folder, method, property = None):
     xml_namespace = {}
     for event, elem in ET.iterparse(entry, ["start-ns"]):
          xml_namespace[elem[0]] = elem[1]
-
+    
+    # print(xml_namespace)
     default_ns = xml_namespace['']  
     description_tag = f"{{{default_ns}}}Description"
     expression_tag = f"{{{default_ns}}}Expression"  
@@ -352,13 +358,43 @@ def extract_information_from_bonsai(entry, src_folder, method, property = None):
                     property_name = prop.get('Name')
                     description = prop.get('Description', False)
                     display_name = prop.get('DisplayName', False)
-                    if display_name == False:
-                        pass
-                    else:
-                        property_name = display_name
+
+                    # print(entry, property_name, display_name, description)
+
+                    # Checks to see if property has already been defined to avoid overwrites and unnecessary loops
+                    if property_name in property_dict or display_name in property_dict:
+                        continue
+                    
+                    # This section checks any embedded IncludeWorkflows to see if the property description is defined there instead 
                     if description == False:
                         for file in include_workflow_list:
-                            description = extract_information_from_bonsai(file, src_folder, "parse_sub", property_name)
+                            description = extract_information_from_bonsai(file, src_folder, "parse_sub", property_name, display_name)
+                            print("Checking: ", file, "for:", property_name, "in:", entry, description)
+
+                    # If the previous section fails, it checks other operator files
+                    if description == False:
+                        for parent in root.iter():
+                            for child in parent:
+                                if child.tag.split("}")[-1] == property_name or child.tag.split("}")[-1] == display_name:
+                                    property_source = parent.get(f"{{{xml_namespace['xsi']}}}type")
+
+                                    # this line checks for property sources that come from outside operators
+                                    # avoids empty and incorect property sources from generic display_names
+                                    if property_source is not None and ':' in property_source:
+                                        # print(entry, property_name, display_name, property_source, description)
+                                        property_namespace = xml_namespace[property_source.split(':')[0]].split('=')[1]
+                                        property_assembly = property_source.split(':')[1]
+
+                                        # this line checks if the property is in the src operator files
+                                        # if property_namespace in entry:
+                                        #     extract_information_from_cs(operator_name, property_name, src_folder)
+
+                                    # description = extract_information_from_cs(file, src_folder, property_name)
+
+                    # Some properties need even further mapping (for instance, GammaLut in GammaCorrection)
+
+                    if display_name != False:
+                        property_name = display_name
                     property_dict[property_name] = description
         return operator_description, property_dict
     
@@ -369,8 +405,12 @@ def extract_information_from_bonsai(entry, src_folder, method, property = None):
             xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
             if xsi_type == "ExternalizedMapping":
                 for prop in expression.findall(f"{{{default_ns}}}Property"):
-                    if property == prop.get('Name') or property == prop.get('DisplayName'):
+                    if {property_name, display_name} & {prop.get('Name'),prop.get('DisplayName')}:
+                        if prop.get('Description') == None:
+                            continue
                         description = prop.get('Description')
+                        # print(entry, property_name, display_name, prop.get('Description'))
+                        # print(entry, property_name, display_name, prop.get('Name'), prop.get('DisplayName'), prop.get('Description'))
         return description
 
 def main():
