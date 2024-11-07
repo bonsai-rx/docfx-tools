@@ -76,7 +76,7 @@ def generate_entries(bonsai_files, src_folder):
         name = os.path.splitext(os.path.basename(file))[0]
         namespace = extract_namespace(file, src_folder)
         uid = namespace + "." + name
-        operator_description, properties = extract_information_from_bonsai(file)
+        operator_description, properties = extract_information_from_bonsai(file, src_folder, 'parse_root')
         
         new_entries.append({
             'namespace': namespace,
@@ -306,46 +306,72 @@ def patch_manifest(manifest_path, new_entries):
     with open(manifest_path, 'w') as f:
         json.dump(manifest_data, f, indent=2, sort_keys=True)
 
-def extract_information_from_bonsai(entry):
+def extract_information_from_bonsai(entry, src_folder, method, property = None):
     properties = []
     
     tree = ET.parse(entry)
     root = tree.getroot()
 
     # Get XML namespaces and prefixes
+    # Build tags
     xml_namespace = {}
     for event, elem in ET.iterparse(entry, ["start-ns"]):
          xml_namespace[elem[0]] = elem[1]
 
-    # Get the default namespace from the XML (no prefix)
     default_ns = xml_namespace['']  
-
-    # Build the tag name for 'Description'
     description_tag = f"{{{default_ns}}}Description"
+    expression_tag = f"{{{default_ns}}}Expression"  
 
-    # Extract description
-    operator_description = root.find(description_tag).text
+    if method == "parse_root":
+        operator_description = root.find(description_tag).text
 
-    # Build the full tag name for 'Expression' with the namespace
-    expression_tag = f"{{{default_ns}}}Expression"  # e.g., "{https://bonsai-rx.org/2018/workflow}Expression"
+        # Find other IncludeWorkflow files to pull externalised mapping properties from
+        # This assumes that there might be more than 1 IncludeWorkflow .bonsai file but so far I have only seen 1
+        # This for loop is duplicated in the next session, see if its possible to maybe refactor
+        include_workflow_list = []
+        for expression in root.findall(f".//{expression_tag}", xml_namespace):
+            xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")
+            if xsi_type == "IncludeWorkflow":
+                path = expression.get("Path", "No path available") 
+                parts = path.split(":")
+                # this assumes that there is only 1 folder in the parent namespace, but might need to be modified in case 
+                # I could combine the split with a list comprehension, but sometimes the parent namespace has dots in the folder 
+                # eg. Bonsai.ML.LinearDynamicalSystems
+                subparts = parts[1].split(".")
+                file_path = os.path.join(src_folder, parts[0], subparts[0], f"{subparts[1]}.bonsai")
+                include_workflow_list.append(file_path)
 
-    # Find all visible 'Properties' based on xsi:type Externalized Mapping"
-    # Note - it seems that some properties are hidden which I did not realise.
-    # For instance see EventLogger
-    property_dict = {}
-    for expression in root.findall(f".//{expression_tag}", xml_namespace):
-        xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
-        if xsi_type == "ExternalizedMapping":
-            for prop in expression.findall(f"{{{default_ns}}}Property"):
-                property_name = prop.get('Name')
-                description = prop.get('Description', "No description available.")
-                display_name = prop.get('DisplayName', False)
-                if display_name == False:
+        # Find all visible 'Properties' based on xsi:type Externalized Mapping"
+        # Note - it seems that some properties are hidden which I did not realise.
+        # For instance see EventLogger
+        property_dict = {}
+        for expression in root.findall(f".//{expression_tag}", xml_namespace):
+            xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
+            if xsi_type == "ExternalizedMapping":
+                for prop in expression.findall(f"{{{default_ns}}}Property"):
+                    property_name = prop.get('Name')
+                    description = prop.get('Description', False)
+                    display_name = prop.get('DisplayName', False)
+                    if display_name == False:
+                        pass
+                    else:
+                        property_name = display_name
+                    if description == False:
+                        for file in include_workflow_list:
+                            description = extract_information_from_bonsai(file, src_folder, "parse_sub", property_name)
                     property_dict[property_name] = description
-                else:
-                    property_dict[display_name] = description
-    return operator_description, property_dict
-
+        return operator_description, property_dict
+    
+    if method == "parse_sub":
+        property_dict = {}
+        description = False
+        for expression in root.findall(f".//{expression_tag}", xml_namespace):
+            xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
+            if xsi_type == "ExternalizedMapping":
+                for prop in expression.findall(f"{{{default_ns}}}Property"):
+                    if property == prop.get('Name') or property == prop.get('DisplayName'):
+                        description = prop.get('Description')
+        return description
 
 def main():
     src_folder = "../src"  # Adjust if your src folder is in a different location
