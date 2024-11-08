@@ -342,9 +342,9 @@ def extract_information_from_package(property_namespace, property_assembly, prop
                             for member in root.findall(".//member"):
                                 if member.get("name") == "P:"+property_namespace+"."+property_assembly+"."+property_name:
                                     description = member.find("summary").text.strip()
+                                    # print(property_namespace, property_assembly, property_name, description)
                     except:
-                        print(f"{{{property_assembly_description_file}}} not found, have you installed the package dependencies in the .bonsai local environment")
-                        print(f"{{{property_name}}} in {{{property_assembly}}} not extracted")
+                        print(f"{{{property_name}}} in {{{property_assembly}}} in {{{property_assembly_description_file}}} not found. package not installed in .bonsai or missing doc XML")
                         return None
         return description
     except:
@@ -405,8 +405,17 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                     # Skips property if has already been defined to avoid overwrites and unnecessary loops
                     # But overwrites it if it could not find the description before
                     if property_name in property_dict or display_name in property_dict:
-                        if property_dict.get(property_name) is not False and property_dict.get(display_name) is not False:
+                        prop_value = property_dict.get(property_name)
+                        display_value = property_dict.get(display_name)
+                        # print(property_name, display_name, prop_value, display_value)
+
+                        if (prop_value is not False and prop_value is not None) or \
+                        (display_value is not False and display_value is not None):
+                            # print(property_name, display_name, prop_value, display_value)
                             continue
+
+                        # if property_dict.get(property_name) is not False and property_dict.get(display_name) is not False:
+
                     
                     # This section checks any embedded IncludeWorkflows to see if the property description is defined there instead 
                     if description == False:
@@ -416,6 +425,7 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
 
                     # If the previous section fails, it checks other operator files
                     if description == False:
+                        found_description = False
                         for parent in root.iter():
                             for child in parent:
                                 if child.tag.split("}")[-1] == property_name or child.tag.split("}")[-1] == display_name:
@@ -427,20 +437,28 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                                         # print(entry, property_name, display_name, property_source, description)
                                         property_namespace = xml_namespace[property_source.split(':')[0]].split('=')[1]
                                         property_assembly = property_source.split(':')[1]
-                                        # print(entry, property_name, display_name, property_source, property_namespace, property_assembly)
 
                                         # this line checks if the property is in the src operator files
                                         if property_namespace in entry:
                                             description = extract_information_from_cs(property_namespace, property_assembly, src_folder, property_name)
                                         else:
                                             description = extract_information_from_package(property_namespace, property_assembly, property_name)
-
-                                    # description = extract_information_from_cs(file, src_folder, property_name)
+                                            # print(entry, property_name, display_name, property_namespace, property_assembly, description)
+                                        
+                                        # The breaks are to prevent overwriting from other definitions in the file.
+                                        if description is not False:
+                                            found_description = True
+                                            break
+                            
+                            # The breaks are to prevent overwriting from other definitions in the file.
+                            if found_description:
+                                break
 
                     # Some properties need even further mapping (for instance, GammaLut in GammaCorrection)
 
                     if display_name != False:
                         property_name = display_name
+                    # print(entry, property_name, description)
                     property_dict[property_name] = description
         return operator_description, property_dict
     
