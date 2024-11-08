@@ -393,6 +393,12 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
         # For instance see EventLogger
         property_dict = {}
         processed_properties = set()
+        
+        # this keeps track of external mapping properties that have a description attached
+        # and are thus special properies that are to be excluded when filtering properties that are being property mapped 
+        properties_to_not_exclude = []
+
+
         for expression in root.findall(f".//{expression_tag}", xml_namespace):
             xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
             if xsi_type == "ExternalizedMapping":
@@ -402,6 +408,9 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                     display_name = prop.get('DisplayName', False)
 
                     # print(entry, property_name, display_name, description)
+
+                    if description:
+                        properties_to_not_exclude.append(display_name)
 
                     # Skips property if has already been defined to avoid overwrites and unnecessary loops
                     # But overwrites it if it could not find the description before
@@ -465,6 +474,20 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                         property_name = display_name
                     # print(entry, property_name, description)
                     property_dict[property_name] = description
+        
+        # Remove property mapping properties (these are hidden in the editor)
+        # As an example see ExtentX and ExtentY in DrawCircle
+        property_mapping_list = []
+        for expression in root.findall(f".//{expression_tag}", xml_namespace):
+            xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
+            if xsi_type == "PropertyMapping":
+                for prop in expression.findall(f".//{{{default_ns}}}PropertyMappings/{{{default_ns}}}Property"):
+                    property_name = prop.get('Name')
+                    property_mapping_list.append(property_name)
+        for prop in property_mapping_list:
+            if prop not in properties_to_not_exclude:
+                property_dict.pop(prop, None)
+
         return operator_description, property_dict
     
     if method == "parse_sub":
