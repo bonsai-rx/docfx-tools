@@ -77,7 +77,7 @@ def generate_entries(bonsai_files, src_folder):
         name = os.path.splitext(os.path.basename(file))[0]
         namespace = extract_namespace(file, src_folder)
         uid = namespace + "." + name
-        operator_description, properties = extract_information_from_bonsai(file, src_folder, 'parse_root')
+        operator_description, properties = extract_information_from_bonsai(file, src_folder, method = 'parse_root')
         
         new_entries.append({
             'namespace': namespace,
@@ -321,9 +321,36 @@ def extract_information_from_cs(property_namespace, property_assembly, src_folde
                 break
     return description
 
-def extract_information_from_package(property_namespace, property_assembly, src_folder, property_name):
-    pass
+def extract_information_from_package(property_namespace, property_assembly, property_name):
+    filename = os.path.join("../.bonsai", "Bonsai.config")
+    description = False
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            tree = ET.parse(file)
+            root = tree.getroot()
 
+            # Find the AssemblyLocation element with the specified assemblyName
+            for assembly_location in root.findall(".//AssemblyLocation"):
+                if assembly_location.get("assemblyName") == property_namespace:
+                    # Return the location attribute if the assembly is found
+                    property_assembly_description_file = os.path.join("../.bonsai", assembly_location.get("location")[:-4] + ".xml")
+                    try:
+                        with open(property_assembly_description_file, "r", encoding="utf-8") as file2:
+                            tree = ET.parse(file2)
+                            root = tree.getroot()
+
+                            for member in root.findall(".//member"):
+                                if member.get("name") == "P:"+property_namespace+"."+property_assembly+"."+property_name:
+                                    description = member.find("summary").text.strip()
+                    except:
+                        print(f"{{{property_assembly_description_file}}} not found, have you installed the package dependencies in the .bonsai local environment")
+                        print(f"{{{property_name}}} in {{{property_assembly}}} not extracted")
+                        return None
+        return description
+    except:
+        print("Bonsai.config wasn't found, have you installed .bonsai local environment .")
+        return None
+            
 
 def extract_information_from_bonsai(entry, src_folder, method, property_name = None, display_name = False):
     properties = []
@@ -404,7 +431,7 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                                         if property_namespace in entry:
                                             description = extract_information_from_cs(property_namespace, property_assembly, src_folder, property_name)
                                         else:
-                                            description = extract_information_from_package(property_namespace, property_assembly, src_folder, property_name)
+                                            description = extract_information_from_package(property_namespace, property_assembly, property_name)
 
                                     # description = extract_information_from_cs(file, src_folder, property_name)
 
