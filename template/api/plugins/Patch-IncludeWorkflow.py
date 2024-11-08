@@ -402,9 +402,11 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
 
                     # print(entry, property_name, display_name, description)
 
-                    # Checks to see if property has already been defined to avoid overwrites and unnecessary loops
+                    # Skips property if has already been defined to avoid overwrites and unnecessary loops
+                    # But overwrites it if it could not find the description before
                     if property_name in property_dict or display_name in property_dict:
-                        continue
+                        if property_dict.get(property_name) is not False and property_dict.get(display_name) is not False:
+                            continue
                     
                     # This section checks any embedded IncludeWorkflows to see if the property description is defined there instead 
                     if description == False:
