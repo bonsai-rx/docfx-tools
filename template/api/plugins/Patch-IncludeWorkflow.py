@@ -392,6 +392,7 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
         # Note - it seems that some properties are hidden which I did not realise.
         # For instance see EventLogger
         property_dict = {}
+        processed_properties = set()
         for expression in root.findall(f".//{expression_tag}", xml_namespace):
             xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
             if xsi_type == "ExternalizedMapping":
@@ -431,6 +432,9 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                                 if child.tag.split("}")[-1] == property_name or child.tag.split("}")[-1] == display_name:
                                     property_source = parent.get(f"{{{xml_namespace['xsi']}}}type")
 
+                                    if (property_source, property_name) in processed_properties:
+                                        continue
+
                                     # this line checks for property sources that come from outside operators
                                     # avoids empty and incorect property sources from generic display_names
                                     if property_source is not None and ':' in property_source:
@@ -448,6 +452,7 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                                         # The breaks are to prevent overwriting from other definitions in the file.
                                         if description is not False:
                                             found_description = True
+                                            processed_properties.add((property_source, property_name))
                                             break
                             
                             # The breaks are to prevent overwriting from other definitions in the file.
