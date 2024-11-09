@@ -389,8 +389,6 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                 include_workflow_list.append(file_path)
 
         # Find all visible 'Properties' based on xsi:type Externalized Mapping"
-        # Note - it seems that some properties are hidden which I did not realise.
-        # For instance see EventLogger
         property_dict = {}
         processed_properties = set()
         
@@ -407,10 +405,25 @@ def extract_information_from_bonsai(entry, src_folder, method, property_name = N
                     description = prop.get('Description', False)
                     display_name = prop.get('DisplayName', False)
 
-                    # print(entry, property_name, display_name, description)
+                    print(entry, property_name, display_name, description)
 
                     if description:
                         properties_to_not_exclude.append(display_name)
+                        # print(entry, property_source, property_name)
+
+                        # this section adds the parent of the properties so they can be skipped over
+                        # even if the description is found
+                        found_parent = False
+                        for parent in root.iter():
+                            for child in parent:
+                                if child.tag.split("}")[-1] == property_name or child.tag.split("}")[-1] == display_name:
+                                    property_source = parent.get(f"{{{xml_namespace['xsi']}}}type")
+                                    # print(entry, property_source, property_name)
+                                    processed_properties.add((property_source, property_name))
+                                    found_parent = True
+                                    break
+                            if found_parent:
+                                break
 
                     # Skips property if has already been defined to avoid overwrites and unnecessary loops
                     # But overwrites it if it could not find the description before
