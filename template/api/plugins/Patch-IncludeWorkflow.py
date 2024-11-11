@@ -363,10 +363,8 @@ def extract_information_from_include_workflow(entry, src_folder, property_name =
     
     # Make tags
     default_ns = xml_namespace['']  
-    description_tag = f"{{{default_ns}}}Description"
     expression_tag = f"{{{default_ns}}}Expression"  
 
-    property_dict = {}
     description = False
     for expression in root.findall(f".//{expression_tag}", xml_namespace):
         xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
@@ -398,7 +396,6 @@ def extract_information_from_bonsai(entry, src_folder, property_name = None, dis
 
     # Dictionary to store externalized properties and their descriptions
     xml_list = []
-    externalized_mappings = {}
     processed_properties = set()
     include_workflow_list = []
     property_mapping_list = []
@@ -454,7 +451,8 @@ def extract_information_from_bonsai(entry, src_folder, property_name = None, dis
                 property_name = prop.get('Name')
                 property_mapping_list.append(property_name)
 
-    print(xml_list)
+    print(entry, xml_list)
+    # print(include_workflow_list)
 
     # clean up xml list for propert map properties
     for prop in property_mapping_list[:]:
@@ -472,24 +470,28 @@ def extract_information_from_bonsai(entry, src_folder, property_name = None, dis
         index += 1
         if potential_property['type'] == 'ExternalizedMapping':
             if potential_property['description'] == False:
+
+                description = False
                 
                 # This section checks any embedded IncludeWorkflows to see if the property description is defined there instead 
                 for file in include_workflow_list:
                     description = extract_information_from_include_workflow(file, src_folder, potential_property['property_name'], potential_property['display_name'])
+                    # print(entry, description, potential_property['property_name'],potential_property['display_name'])
                 
                 # This section checks any subsequent PropertySources to see if the property description is defined there instead 
                 if description == False:
                     for potential_source in xml_list[index+1:]:
                         if potential_source['type'] == "PropertySource":
                             if potential_property['property_name'] in potential_source['property_list']:
-                                
+
                                 # uses a CS file extractor if the propertysource is within the library, but the check is not that robust
                                 if potential_source['property_namespace'] in entry:
                                     description = extract_information_from_cs(potential_source['property_namespace'], potential_source['property_assembly'], src_folder, potential_property['property_name'])
                                 
                                 # uses a package file extractor 
                                 else:
-                                    description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], property_name)  
+                                    description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_property['property_name'])
+                                    # print(potential_property['property_name'],potential_source, description)  
                 # xml_list[index]["description"] = description
             
                 if potential_property["display_name"] == False:
@@ -498,9 +500,9 @@ def extract_information_from_bonsai(entry, src_folder, property_name = None, dis
                     processed_properties[potential_property["display_name"]] = description
             else:
                 if potential_property["display_name"] == False:
-                    processed_properties[potential_property["property_name"]] = description
+                    processed_properties[potential_property["property_name"]] = potential_property['description']
                 else:
-                    processed_properties[potential_property["display_name"]] = description
+                    processed_properties[potential_property["display_name"]] = potential_property['description']
     return(operator_description, processed_properties)
 
         
