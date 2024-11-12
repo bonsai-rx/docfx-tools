@@ -453,14 +453,16 @@ def extract_information_from_bonsai(entry, src_folder, property_name = None, dis
 
     print(entry, xml_list)
     # print(include_workflow_list)
-
+    # print(entry, property_mapping_list, properties_to_keep)
     # clean up xml list for propert map properties
     for prop in property_mapping_list[:]:
-        if prop not in properties_to_keep:
+        if prop in properties_to_keep:
             property_mapping_list.remove(prop)
+
+    # print(entry, property_mapping_list)
     
     for prop in xml_list[:]:
-        if prop.get("property_name") in property_mapping_list:
+        if prop.get("display_name") in property_mapping_list:
             xml_list.remove(prop) 
 
     # Go through XML list and extract description for relevant properties
@@ -491,13 +493,19 @@ def extract_information_from_bonsai(entry, src_folder, property_name = None, dis
                                 # uses a package file extractor 
                                 else:
                                     description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_property['property_name'])
-                                    # print(potential_property['property_name'],potential_source, description)  
+                                    # print(entry, potential_property['property_name'],potential_source, description)
+                                    if description:
+                                        break
+                
                 # xml_list[index]["description"] = description
-            
-                if potential_property["display_name"] == False:
-                    processed_properties[potential_property["property_name"]] = description
-                else:
-                    processed_properties[potential_property["display_name"]] = description
+                # bunch of checks to make sure that it only overwrites previous declarations if they are empty and if it itself is not empty.
+                if description:
+                    if potential_property["display_name"] == False:
+                        if not processed_properties.get(potential_property["property_name"]): 
+                            processed_properties[potential_property["property_name"]] = description
+                    else:
+                        if not processed_properties.get(potential_property["display_name"]):
+                            processed_properties[potential_property["display_name"]] = description
             else:
                 if potential_property["display_name"] == False:
                     processed_properties[potential_property["property_name"]] = potential_property['description']
