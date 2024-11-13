@@ -325,7 +325,7 @@ def extract_information_from_cs(property_assembly, property_operator, src_folder
 
     return description
 
-def extract_information_from_package(property_assembly, property_operator, property_name):
+def extract_information_from_package(property_namespace, property_assembly, property_operator, property_name):
     filename = os.path.join("../.bonsai", "Bonsai.config")
     description = False
     try:
@@ -344,9 +344,12 @@ def extract_information_from_package(property_assembly, property_operator, prope
                             root = tree.getroot()
 
                             for member in root.findall(".//member"):
-                                if member.get("name") == "P:"+property_assembly+"."+property_operator+"."+property_name:
-                                    description = member.find("summary").text.strip()
-
+                                if property_namespace == property_assembly:
+                                    if member.get("name") == "P:"+property_assembly+"."+property_operator+"."+property_name:
+                                        description = member.find("summary").text.strip()
+                                else:
+                                    if member.get("name") == "P:"+property_namespace+"."+property_operator+"."+property_name:
+                                        description = member.find("summary").text.strip()
                     except:
                         print(f"{{{property_name}}} in {{{property_operator}}} in {{{property_assembly_description_file}}} not found. package not installed in .bonsai or missing doc XML")
                         return None
@@ -487,7 +490,7 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                                 
                                 # uses a package file extractor 
                                 else:
-                                    description = extract_information_from_package(potential_source['property_assembly'], potential_source['property_operator'], potential_property['property_name'])
+                                    description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], potential_property['property_name'])
                                     # print(entry, potential_property['property_name'],potential_source, description)
                                     if description:
                                         break
