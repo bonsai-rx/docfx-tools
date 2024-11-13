@@ -307,8 +307,8 @@ def patch_manifest(manifest_path, new_entries):
     with open(manifest_path, 'w') as f:
         json.dump(manifest_data, f, indent=2, sort_keys=True)
 
-def extract_information_from_cs(property_namespace, property_assembly, src_folder, property_name):
-    filename = os.path.join(src_folder, property_namespace, f"{property_assembly}.cs")
+def extract_information_from_cs(property_assembly, property_operator, src_folder, property_name):
+    filename = os.path.join(src_folder, property_assembly, f"{property_operator}.cs")
     with open(filename, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
@@ -325,7 +325,7 @@ def extract_information_from_cs(property_namespace, property_assembly, src_folde
 
     return description
 
-def extract_information_from_package(property_namespace, property_assembly, property_name):
+def extract_information_from_package(property_assembly, property_operator, property_name):
     filename = os.path.join("../.bonsai", "Bonsai.config")
     description = False
     try:
@@ -335,7 +335,7 @@ def extract_information_from_package(property_namespace, property_assembly, prop
 
             # Find the AssemblyLocation element with the specified assemblyName
             for assembly_location in root.findall(".//AssemblyLocation"):
-                if assembly_location.get("assemblyName") == property_namespace:
+                if assembly_location.get("assemblyName") == property_assembly:
                     # Return the location attribute if the assembly is found
                     property_assembly_description_file = os.path.join("../.bonsai", assembly_location.get("location")[:-4] + ".xml")
                     try:
@@ -344,11 +344,11 @@ def extract_information_from_package(property_namespace, property_assembly, prop
                             root = tree.getroot()
 
                             for member in root.findall(".//member"):
-                                if member.get("name") == "P:"+property_namespace+"."+property_assembly+"."+property_name:
+                                if member.get("name") == "P:"+property_assembly+"."+property_operator+"."+property_name:
                                     description = member.find("summary").text.strip()
-                                    # print(property_namespace, property_assembly, property_name, description)
+
                     except:
-                        print(f"{{{property_name}}} in {{{property_assembly}}} in {{{property_assembly_description_file}}} not found. package not installed in .bonsai or missing doc XML")
+                        print(f"{{{property_name}}} in {{{property_operator}}} in {{{property_assembly_description_file}}} not found. package not installed in .bonsai or missing doc XML")
                         return None
         return description
     except:
@@ -406,12 +406,21 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
             file_path = os.path.join(src_folder, parts[0], subparts[0], f"{subparts[1]}.bonsai")
             include_workflow_list.append(file_path)
             
-        if xsi_type in ("Combinator", "Source", "Transform", "Sink"):
-            operator_elem = expression.find("*", xml_namespace)
-            property_source = operator_elem.get(f"{{{xml_namespace['xsi']}}}type")  
+        # so far though I have only seen combinators and none of the rest    
+        if xsi_type in ("Combinator", "Source", "Transform", "Sink") or ':' in xsi_type:
+            if xsi_type in ("Combinator", "Source", "Transform", "Sink"):
+                operator_elem = expression.find("*", xml_namespace)
+                property_source = operator_elem.get(f"{{{xml_namespace['xsi']}}}type")
+            else:
+                operator_elem = expression
+                property_source = xsi_type
+
             if ':' in property_source:
-                property_namespace = xml_namespace[property_source.split(':')[0]].split('=')[1]
-                property_assembly = property_source.split(':')[1]
+                property_namespace = xml_namespace[property_source.split(':')[0]].split(':')[1].split(';')[0]
+                property_assembly = xml_namespace[property_source.split(':')[0]].split('=')[1]
+                property_operator = property_source.split(':')[1]
+                if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
+                    print(property_namespace, property_assembly, property_operator)
                 property_list = []
                 for child in operator_elem:
                     property_name = child.tag.split("}")[-1] 
@@ -420,17 +429,18 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                     xml_list.append({
                             "type": "PropertySource",
                             "property_namespace": property_namespace,
-                            "property_assembly":property_assembly,
+                            "property_assembly": property_assembly,
+                            'property_operator': property_operator,
                             'property_list': property_list
                         })
-        
+
         if xsi_type == "PropertyMapping":
             for prop in expression.findall(f".//{{{default_ns}}}PropertyMappings/{{{default_ns}}}Property"):
                 property_name = prop.get('Name')
                 property_mapping_list.append(property_name)
 
-    if entry == "../src\BonVision\Primitives\DrawText.bonsai":
-        print(entry, xml_list)
+    # if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
+    #     print(entry, xml_list)
     # print(include_workflow_list)
     # print(entry, property_mapping_list, properties_to_keep)
     # clean up xml list for propert map properties
@@ -470,14 +480,14 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                             if potential_property['property_name'] in potential_source['property_list']:
 
                                 # uses a CS file extractor if the propertysource is within the library, but the check is not that robust
-                                if potential_source['property_namespace'] in entry:
-                                    description = extract_information_from_cs(potential_source['property_namespace'], potential_source['property_assembly'], src_folder, potential_property['property_name'])
+                                if potential_source['property_assembly'] in entry:
+                                    description = extract_information_from_cs(potential_source['property_assembly'], potential_source['property_operator'], src_folder, potential_property['property_name'])
                                     if description:
                                         break
                                 
                                 # uses a package file extractor 
                                 else:
-                                    description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_property['property_name'])
+                                    description = extract_information_from_package(potential_source['property_assembly'], potential_source['property_operator'], potential_property['property_name'])
                                     # print(entry, potential_property['property_name'],potential_source, description)
                                     if description:
                                         break
