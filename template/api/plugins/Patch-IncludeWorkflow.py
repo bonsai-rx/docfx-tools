@@ -355,37 +355,6 @@ def extract_information_from_package(property_namespace, property_assembly, prop
         print("Bonsai.config wasn't found, have you installed .bonsai local environment .")
         return None
 
-
-def extract_information_from_include_workflow(entry, src_folder, property_name = None, display_name = False):
-    tree = ET.parse(entry)
-    root = tree.getroot()
-
-    # Get XML namespaces and prefixes
-    xml_namespace = {}
-    for event, elem in ET.iterparse(entry, ["start-ns"]):
-        xml_namespace[elem[0]] = elem[1]
-    
-    # Make tags
-    default_ns = xml_namespace['']  
-    expression_tag = f"{{{default_ns}}}Expression"  
-
-    description = False
-    for expression in root.findall(f".//{expression_tag}", xml_namespace):
-        xsi_type = expression.get(f"{{{xml_namespace['xsi']}}}type")  
-        if xsi_type == "ExternalizedMapping":
-            for prop in expression.findall(f"{{{default_ns}}}Property"):
-                if {property_name, display_name} & {prop.get('Name'),prop.get('DisplayName')}:
-                    if prop.get('Description') == None:
-                        continue
-                    description = prop.get('Description')
-    
-    # hmm can this whole function be simplified? and just have this stop recursion loop
-    if description == False:
-        _, temp_property= extract_information_from_bonsai(entry, src_folder, stop_recursion = True)
-        description = temp_property.get(property_name, False)
-    return description
-
-
 def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
     tree = ET.parse(entry)
     root = tree.getroot()
@@ -488,7 +457,8 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                 # This section checks any embedded IncludeWorkflows to see if the property description is defined there instead 
                 if stop_recursion == False:
                     for file in include_workflow_list:
-                        description = extract_information_from_include_workflow(file, src_folder, potential_property['property_name'], potential_property['display_name'])
+                        _, temp_property= extract_information_from_bonsai(file, src_folder, stop_recursion = True)
+                        description = temp_property.get(potential_property['property_name'], False)
                         # print(entry, description, potential_property['property_name'],potential_property['display_name'])
                         if description:
                             break
