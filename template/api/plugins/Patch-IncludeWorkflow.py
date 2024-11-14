@@ -415,38 +415,52 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
         if xsi_type in ("Combinator", "Source", "Transform", "Sink") or ':' in xsi_type:
             if xsi_type in ("Combinator", "Source", "Transform", "Sink"):
                 operator_elem = expression.find("*", xml_namespace)
-                property_source = operator_elem.get(f"{{{xml_namespace['xsi']}}}type")
+                property_reference = operator_elem.get(f"{{{xml_namespace['xsi']}}}type")
             else:
                 operator_elem = expression
-                property_source = xsi_type
+                property_reference = xsi_type
 
-            if ':' in property_source:
-                property_namespace = xml_namespace[property_source.split(':')[0]].split(':')[1].split(';')[0]
-                property_assembly = xml_namespace[property_source.split(':')[0]].split('=')[1]
-                property_operator = property_source.split(':')[1]
-                if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
-                    print(property_source, property_namespace, property_assembly, property_operator)
+            if ':' in property_reference:
+                property_namespace = xml_namespace[property_reference.split(':')[0]].split(':')[1].split(';')[0]
+                property_assembly = xml_namespace[property_reference.split(':')[0]].split('=')[1]
+                property_operator = property_reference.split(':')[1]
+                # if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
+                #     print(property_reference, property_namespace, property_assembly, property_operator)
                 property_list = []
                 for child in operator_elem:
                     property_name = child.tag.split("}")[-1] 
                     property_list.append(property_name)
                 # Edge case: This operator does not have property child element
-                if property_source == 'gl:WarpPerspective':
+                if property_reference == 'gl:WarpPerspective':
                     property_list.append('Destination')
                 if property_list:
                     xml_list.append({
-                            "type": "PropertySource",
+                            "type": "PropertyReference",
                             "property_namespace": property_namespace,
                             "property_assembly": property_assembly,
                             'property_operator': property_operator,
                             'property_list': property_list
                         })
-
+        
+        # Edge case: gl.LoadImage (there might be other PropertySources that might need to be added)
+        # This one is especially problematic because the property_name is 'Value' and display_name is 'GammaLut' 
+        # but it needs to match to 'FileName' in gl:LoadImage.
+        if xsi_type == "PropertySource":
+           if expression.get("TypeArguments") == "gl:LoadImage,sys:String":
+               xml_list.append({
+                            "type": "PropertyReference",
+                            "property_namespace": 'Bonsai.Shaders',
+                            "property_assembly": 'Bonsai.Shaders',
+                            'property_operator': 'LoadImage',
+                            'property_list': ['Value'],
+                            'edge_case':True,
+                            'edge_case_property_name':'FileName'
+                        })
         
         # Edge case: Subject operators do not have XML namespace declaration 
         if xsi_type in ['MulticastSubject', 'SubscribeSubject']:
             xml_list.append({
-                            "type": "PropertySource",
+                            "type": "PropertyReference",
                             "property_namespace": 'Bonsai.Expressions',
                             "property_assembly": 'Bonsai.Core',
                             'property_operator': xsi_type,
@@ -456,12 +470,13 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
         # Edge case: Format operator does not have XML namespace declaration and property child elements
         if xsi_type in ['Format']:
             xml_list.append({
-                            "type": "PropertySource",
+                            "type": "PropertyReference",
                             "property_namespace": 'Bonsai.Expressions',
                             "property_assembly": 'Bonsai.Core',
                             'property_operator': 'FormatBuilder',
                             'property_list': ['Format', 'Selector']
                         })
+        
             
         # finds properties that have been mapped and are thus hidden or represented by some other property name           
         if xsi_type == "PropertyMapping":
@@ -503,13 +518,13 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                         if description:
                             break
                 
-                # This section checks any subsequent PropertySources to see if the property description is defined there instead 
+                # This section checks any subsequent PropertyReferences to see if the property description is defined there instead 
                 if description == False:
                     for potential_source in xml_list[index+1:]:
-                        if potential_source['type'] == "PropertySource":
+                        if potential_source['type'] == "PropertyReference":
                             if potential_property['property_name'] in potential_source['property_list']:
 
-                                # uses a CS file extractor if the propertysource is within the library, but the check is not that robust
+                                # uses a CS file extractor if the PropertyReference is within the library, but the check is not that robust
                                 if potential_source['property_assembly'] in entry:
                                     description = extract_information_from_cs(potential_source['property_assembly'], potential_source['property_operator'], src_folder, potential_property['property_name'])
                                     if description:
@@ -517,7 +532,10 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                                 
                                 # uses a package file extractor 
                                 else:
-                                    description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], potential_property['property_name'])
+                                    if potential_source.get('edge_case'):
+                                        description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], potential_source['edge_case_property_name'])
+                                    else:
+                                        description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], potential_property['property_name'])
                                     # print(entry, potential_property['property_name'],potential_source, description)
                                     if description:
                                         break
