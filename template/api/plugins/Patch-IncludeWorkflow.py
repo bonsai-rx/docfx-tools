@@ -425,11 +425,14 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                 property_assembly = xml_namespace[property_source.split(':')[0]].split('=')[1]
                 property_operator = property_source.split(':')[1]
                 if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
-                    print(property_namespace, property_assembly, property_operator)
+                    print(property_source, property_namespace, property_assembly, property_operator)
                 property_list = []
                 for child in operator_elem:
                     property_name = child.tag.split("}")[-1] 
                     property_list.append(property_name)
+                # Edge case: This operator does not have property child element
+                if property_source == 'gl:WarpPerspective':
+                    property_list.append('Destination')
                 if property_list:
                     xml_list.append({
                             "type": "PropertySource",
@@ -440,7 +443,7 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                         })
 
         
-        # Subject operators have a different kind of logic, they dont use namespace declarations in the IncludeWorkflow XML file
+        # Edge case: Subject operators do not have XML namespace declaration 
         if xsi_type in ['MulticastSubject', 'SubscribeSubject']:
             xml_list.append({
                             "type": "PropertySource",
@@ -450,7 +453,7 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                             'property_list': ['Name']
                         })
         
-        # The format operator is another special case, it doesnt even list the properties.
+        # Edge case: Format operator does not have XML namespace declaration and property child elements
         if xsi_type in ['Format']:
             xml_list.append({
                             "type": "PropertySource",
