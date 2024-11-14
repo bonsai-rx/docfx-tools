@@ -409,7 +409,9 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
             file_path = os.path.join(src_folder, parts[0], subparts[0], f"{subparts[1]}.bonsai")
             include_workflow_list.append(file_path)
             
-        # so far though I have only seen combinators and none of the rest    
+        # finds embededded operators to pull parameter descriptions from
+        # so far though I have only seen combinators and none of the rest 
+        # ':' in xsi_type catches some older operators that aren't enclosed by a Bonsai xsi:type (like io.csvreader)   
         if xsi_type in ("Combinator", "Source", "Transform", "Sink") or ':' in xsi_type:
             if xsi_type in ("Combinator", "Source", "Transform", "Sink"):
                 operator_elem = expression.find("*", xml_namespace)
@@ -437,10 +439,24 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                             'property_list': property_list
                         })
 
+        
+        # Subject operators have a different kind of logic
+        if xsi_type in ['MulticastSubject', 'SubscribeSubject']:
+            xml_list.append({
+                            "type": "PropertySource",
+                            "property_namespace": 'Bonsai.Expressions',
+                            "property_assembly": 'Bonsai.Core',
+                            'property_operator': xsi_type,
+                            'property_list': ['Name']
+                        })
+            
+        # finds properties that have been mapped and are thus hidden or represented by some other property name           
         if xsi_type == "PropertyMapping":
             for prop in expression.findall(f".//{{{default_ns}}}PropertyMappings/{{{default_ns}}}Property"):
                 property_name = prop.get('Name')
                 property_mapping_list.append(property_name)
+
+
 
     # if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
     #     print(entry, xml_list)
