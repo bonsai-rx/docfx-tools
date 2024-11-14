@@ -442,20 +442,31 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                             'property_list': property_list
                         })
         
-        # Edge case: gl.LoadImage (there might be other PropertySources that might need to be added)
-        # This one is especially problematic because the property_name is 'Value' and display_name is 'GammaLut' 
-        # but it needs to match to 'FileName' in gl:LoadImage.
+        # Edge case: PropertySources have a different XML expression format, need to swap Property Values and even Operator Names
         if xsi_type == "PropertySource":
-           if expression.get("TypeArguments") == "gl:LoadImage,sys:String":
-               xml_list.append({
+            if expression.get("TypeArguments").split(',')[0] == "gl:LoadImage":
+                edge_case_property_name = expression.find("MemberName",xml_namespace).text
+                xml_list.append({
                             "type": "PropertyReference",
                             "property_namespace": 'Bonsai.Shaders',
                             "property_assembly": 'Bonsai.Shaders',
                             'property_operator': 'LoadImage',
                             'property_list': ['Value'],
                             'edge_case':True,
-                            'edge_case_property_name':'FileName'
-                        })
+                            'edge_case_property_name': edge_case_property_name
+                            })
+            
+            elif expression.get("TypeArguments").split(',')[0] == "drw:AddTextBox":
+                edge_case_property_name = expression.find("MemberName",xml_namespace).text
+                xml_list.append({
+                            "type": "PropertyReference",
+                            "property_namespace": 'Bonsai.Vision.Drawing',
+                            "property_assembly": 'Bonsai.Vision',
+                            'property_operator': 'AddTextBase',
+                            'property_list': ['Value'],
+                            'edge_case':True,
+                            'edge_case_property_name': edge_case_property_name
+                            })
         
         # Edge case: Subject operators do not have XML namespace declaration 
         if xsi_type in ['MulticastSubject', 'SubscribeSubject']:
