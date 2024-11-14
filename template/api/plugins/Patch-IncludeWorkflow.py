@@ -440,7 +440,7 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                         })
 
         
-        # Subject operators have a different kind of logic
+        # Subject operators have a different kind of logic, they dont use namespace declarations in the IncludeWorkflow XML file
         if xsi_type in ['MulticastSubject', 'SubscribeSubject']:
             xml_list.append({
                             "type": "PropertySource",
@@ -449,14 +449,22 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                             'property_operator': xsi_type,
                             'property_list': ['Name']
                         })
+        
+        # The format operator is another special case, it doesnt even list the properties.
+        if xsi_type in ['Format']:
+            xml_list.append({
+                            "type": "PropertySource",
+                            "property_namespace": 'Bonsai.Expressions',
+                            "property_assembly": 'Bonsai.Core',
+                            'property_operator': 'FormatBuilder',
+                            'property_list': ['Format', 'Selector']
+                        })
             
         # finds properties that have been mapped and are thus hidden or represented by some other property name           
         if xsi_type == "PropertyMapping":
             for prop in expression.findall(f".//{{{default_ns}}}PropertyMappings/{{{default_ns}}}Property"):
                 property_name = prop.get('Name')
                 property_mapping_list.append(property_name)
-
-
 
     # if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
     #     print(entry, xml_list)
