@@ -169,7 +169,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'assemblies': [entry['namespace'].split('.')[0]],
                 'namespace': entry['namespace'],
                 'summary': property_description,
-                # this should probably be tailored for each property
+                # Placeholder - needs to be tailored for each property or have it empty
                 'syntax':{
                     'content': 'public float ' + property_name,
                     'parameters': [],
