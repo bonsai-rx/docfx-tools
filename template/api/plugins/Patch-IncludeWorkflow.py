@@ -169,12 +169,12 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'assemblies': [entry['namespace'].split('.')[0]],
                 'namespace': entry['namespace'],
                 'summary': property_description,
-                # Placeholder - needs to be tailored for each property or have it empty
+                # Type Placeholder - needs to be tailored for each property or have it empty
                 'syntax':{
-                    'content': 'public float ' + property_name,
+                    'content': 'public placeholder ' + property_name,
                     'parameters': [],
-                    'return': {'type': 'System.Single'},
-                    'content.vb': "Public Property " + property_name + " As Single"
+                    'return': {'type': 'Placeholder'},
+                    'content.vb': "Public Property " + property_name + " As Placeholder"
                 },
                 'overload': entry['uid']+'.'+ property_name +'*'
             })
@@ -215,19 +215,19 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'href': entry['namespace']+".html"
                 }]
         
-        # adds return value reference
+        # adds Type value reference (placeholder for now)
         new_bonsai_yml_file['references'].append({
-                'uid': 'System.Single',
-                'commentId': 'T:System.Single',
+                'uid': 'Placeholder',
+                'commentId': 'T:Placeholder',
                 'parent': 'System',
                 'isExternal': 'true',
-                'href': 'https://learn.microsoft.com/dotnet/api/system.single',
-                'name': 'float',
-                'nameWithType': 'float',
-                'fullName': 'float',
-                'nameWithType.vb': 'Single',
-                'fullName.vb': 'Single',
-                'name.vb': 'Single'
+                # 'href': 'https://learn.microsoft.com/dotnet/api/system.single',
+                'name': 'Placeholder',
+                'nameWithType': 'Placeholder',
+                'fullName': 'Placeholder',
+                'nameWithType.vb': 'Placeholder',
+                'fullName.vb': 'Placeholder',
+                'name.vb': 'Placeholder'
         })
 
         # adds properties overload references
