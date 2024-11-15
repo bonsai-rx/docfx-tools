@@ -442,9 +442,16 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                 for child in operator_elem:
                     property_name = child.tag.split("}")[-1] 
                     property_list.append(property_name)
-                # Edge case: This operator does not have property child element
+
+                # Edge cases: These operators have hidden properties that are not exposed in the .bonsai XML
                 if property_reference == 'gl:WarpPerspective':
                     property_list.append('Destination')
+                if property_reference == 'p2:ModelParameters':
+                    property_list.append('StateParameters')
+                if property_reference == 'p1:KFModelParameters':
+                    property_list.append('P')
+                    property_list.append('X')
+
                 if property_list:
                     xml_list.append({
                             "type": "PropertyReference",
