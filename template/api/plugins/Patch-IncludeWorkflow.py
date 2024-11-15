@@ -307,8 +307,16 @@ def patch_manifest(manifest_path, new_entries):
     with open(manifest_path, 'w') as f:
         json.dump(manifest_data, f, indent=2, sort_keys=True)
 
-def extract_information_from_cs(property_assembly, property_operator, src_folder, property_name):
+def extract_information_from_cs(property_namespace, property_assembly, property_operator, src_folder, property_name):
     filename = os.path.join(src_folder, property_assembly, f"{property_operator}.cs")
+    if os.path.exists(filename):
+        pass
+    # Edge case - Bonsai.ML operators seem to have a difference namespace/assembly configuration
+    else:
+        namespace_parts = set(property_namespace.split("."))
+        assembly_parts = set(property_assembly.split("."))
+        difference = list(namespace_parts - assembly_parts)[0]
+        filename = os.path.join(src_folder, property_assembly, difference, f"{property_operator}.cs")
     with open(filename, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
@@ -320,7 +328,7 @@ def extract_information_from_cs(property_assembly, property_operator, src_folder
                 description = re.search(r'\[Description\("([^"]*)"\)\]', line).group(1)
             
             # breaks the loop if it finds the property declaration and returns the latest description
-            if "public" in line and property_name in line:
+            if "public" in line and re.search(rf"\b{property_name}\b", line):
                 break
 
     return description
@@ -372,8 +380,12 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
     description_tag = f"{{{default_ns}}}Description"
     expression_tag = f"{{{default_ns}}}Expression"  
 
-    # Find description
-    operator_description = root.find(description_tag).text
+    # Find description (if no description found should the operator be skipped?)
+    # some of the bonsai files in machine_learning repo dont have description and not sure if they are supposed to be hidden or not
+    if root.find(description_tag) is not None:
+        operator_description = root.find(description_tag).text
+    else:
+        operator_description = "No Description Found"
 
     # Dictionary to store externalized properties and their descriptions
     xml_list = []
@@ -430,9 +442,16 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                 for child in operator_elem:
                     property_name = child.tag.split("}")[-1] 
                     property_list.append(property_name)
-                # Edge case: This operator does not have property child element
+
+                # Edge cases: These operators have hidden properties that are not exposed in the .bonsai XML
                 if property_reference == 'gl:WarpPerspective':
                     property_list.append('Destination')
+                if property_reference == 'p2:ModelParameters':
+                    property_list.append('StateParameters')
+                if property_reference == 'p1:KFModelParameters':
+                    property_list.append('P')
+                    property_list.append('X')
+
                 if property_list:
                     xml_list.append({
                             "type": "PropertyReference",
@@ -537,7 +556,8 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
 
                                 # uses a CS file extractor if the PropertyReference is within the library, but the check is not that robust
                                 if potential_source['property_assembly'] in entry:
-                                    description = extract_information_from_cs(potential_source['property_assembly'], potential_source['property_operator'], src_folder, potential_property['property_name'])
+                                    # print(entry)
+                                    description = extract_information_from_cs(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], src_folder, potential_property['property_name'])
                                     if description:
                                         break
                                 
