@@ -328,7 +328,7 @@ def extract_information_from_cs(property_namespace, property_assembly, property_
                 description = re.search(r'\[Description\("([^"]*)"\)\]', line).group(1)
             
             # breaks the loop if it finds the property declaration and returns the latest description
-            if "public" in line and property_name in line:
+            if "public" in line and re.search(rf"\b{property_name}\b", line):
                 break
 
     return description
@@ -545,7 +545,7 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
 
                                 # uses a CS file extractor if the PropertyReference is within the library, but the check is not that robust
                                 if potential_source['property_assembly'] in entry:
-                                    print(entry)
+                                    # print(entry)
                                     description = extract_information_from_cs(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], src_folder, potential_property['property_name'])
                                     if description:
                                         break
