@@ -11,9 +11,10 @@ function defineOperatorType(model){
   sink = checkForCategory('Sink') || checkInheritance('Bonsai.Sink') || checkInheritance('Bonsai.IO.StreamSink') || checkInheritance('Bonsai.IO.FileSink');
   combinator = checkForCategory('Combinator') || checkInheritance('Bonsai.Combinator') || checkInheritance('Bonsai.WindowCombinator');
   transform = checkForCategory('Transform') || checkInheritance('Bonsai.Transform') || checkInheritance('Bonsai.Transform');
+  workflow = checkForCategory('Workflow')
 
   let operatorType = {}
-  operatorType.type = sink ? 'sink' : source ? 'source' : transform ? 'transform' : combinator ? 'combinator' :  false ; 
+  operatorType.type = sink ? 'sink' : source ? 'source' : transform ? 'transform' : combinator ? 'combinator' : workflow ? 'workflow' : false ; 
 
   return operatorType;
 }

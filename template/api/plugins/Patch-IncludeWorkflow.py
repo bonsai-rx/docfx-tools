@@ -135,10 +135,10 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'namespace': entry['namespace'],
                 'summary': entry['operator_description'],
                 'syntax':{
-                    'content': "public class " + entry['name'],
+                    'content': "[WorkflowElementCategory(ElementCategory.Workflow)]"+"/n"+"public class " + entry['name'],
                     'content.vb': "Public Class " + entry['name']
                 },
-                # # this isn't applicable for bonsai files but added it in to avoid mref.extension.js errors
+                # # this isn't applicable for bonsai files 
                 # # TODO: maybe make that section of the code more robust to missing fields
                 # 'inheritance': ['System.Object'],
                 # 'inheritedMembers': ['System.Object.GetType'],
