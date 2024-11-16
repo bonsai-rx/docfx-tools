@@ -1,9 +1,9 @@
 # docfx-tools
 
 A repository of docfx tools for Bonsai package documentation:
-- Docfx Workflow Container template patching the modern template to provide stylesheets and scripts for rendering custom workflow containers with copy functionality. 
-- Docfx API TOC template that groups nodes by operator type in the table of contents(TOC) on API pages.
-- Docfx API template that revamps the API page to enhance user-friendliness.
+- Workflow Container Template patching the modern template to provide stylesheets and scripts for rendering custom workflow containers with copy functionality. 
+- API Template that revamps the API page to enhance user-friendliness.
+- IncludeWorkflow Operator Patch that adds support for Bonsai `IncludeWorkflow` Operators
 - Powershell Scripts that automate several content generation steps for package documentation websites.
 
 ## How to include
@@ -44,7 +44,7 @@ export default {
     }
 }
 ```
-## Using API template
+## Using API Template
 
 Modify `docfx.json` to include the api template in the template section (note both the workflow container and API template have to be added separately).
 
@@ -75,6 +75,50 @@ In addition, the images and custom css styles need to be added to the resources 
 ```
 To add individual operator workflows for the API pages, open Bonsai, add the operator, and save each individual operator workflow as `OperatorName.bonsai` (case sensitive) in `docs/workflows/operators`.
 
+## Using IncludeWorkflow Operator Patch
+
+This patch adds support for [IncludeWorkflow](https://bonsai-rx.org/docs/api/Bonsai.Expressions.IncludeWorkflowBuilder.html) operators if they are included in your package. This patch requires a [Python](https://www.python.org/) installation and the [PyYAML](https://pypi.org/project/PyYAML/) package.
+
+1) Assuming you already have `Python` installed, install pyyaml: 
+
+```cmd
+pip install pyyaml
+```
+
+2) Instead of running `dotnet docfx` which executes the standard `docfx` pipeline, run these commands instead to inject the patch:
+
+```cmd
+cd docs
+dotnet docfx metadata      
+python bonsai/template/api/plugins/Patch-IncludeWorkflow.py 
+dotnet docfx build         
+dotnet docfx serve _site   
+```
+
+- The `metadata` command generates [.yaml](https://dotnet.github.io/docfx/docs/dotnet-yaml-format.html) files for standard operators (C# .cs files) as well as the table of contents (TOC).
+- The `Patch-IncludeWorkflow.py` file generates `.yaml` files for `IncludeWorkflow` .bonsai operators and modifies the TOC.
+- The `build` command generates `.html` files from `.yaml` and places them in a `_site` folder in `docs`.
+- The `serve` command serves a local preview of the website from `_site`.
+
+3) The `dotnet docfx` command in the `docs/build.ps1` script that is used to build the `docfx` website on GitHub needs to be modified with:
+
+```ps1
+dotnet docfx metadata
+python ./bonsai/template/api/plugins/Patch-IncludeWorkflow.py
+dotnet docfx build
+```
+
+4) Lastly, the GitHub Actions recipe `.github/workflows/docs.yml` needs to have these lines added before the execution of the `build.ps1` script.
+
+```yaml
+    - name: Setup Python 
+    uses: actions/setup-python@v5
+    with: 
+        python-version: '3.12'
+    
+    - name: Setup Pyyaml
+    run: pip install pyyaml==6.0.2
+```
 
 ## Powershell Scripts - Exporting workflow images
 

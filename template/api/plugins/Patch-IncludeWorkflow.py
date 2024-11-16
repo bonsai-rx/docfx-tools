@@ -3,7 +3,7 @@
 # isnt enough as the API template relies on certain shared models that don't build correctly
 # TODO: add yaml flag and check to prevent modification of already modified files 
 # TODO: make it more efficient (too many loops of new entries in each separate function)
-# requirements: pyyaml (install with pip install pyyaml)
+# requirements: pyyaml (install with pip install pyyaml to test locally)
 
 import os
 import yaml
