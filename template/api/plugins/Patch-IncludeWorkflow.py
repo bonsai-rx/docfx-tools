@@ -131,7 +131,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                     # this isn't accurate but is hardcoded here because I don't think it affects anything
                     'startLine': 9
                     },
-                'assemblies': [entry['namespace'].split('.')[0]],
+                'assemblies': [entry['name']],
                 'namespace': entry['namespace'],
                 'summary': entry['operator_description'],
                 'syntax':{

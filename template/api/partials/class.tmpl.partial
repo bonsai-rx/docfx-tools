@@ -67,7 +67,6 @@
 </dl>
 {{/inheritance.0}}
 
-
 {{#implements.0}}
 <dl class="typelist implements">
   <dt>{{__global.implements}}</dt>
@@ -93,6 +92,5 @@
   </dd>
 </dl>
 {{/derivedClasses.0}}
-
 
 {{/isClass}}
