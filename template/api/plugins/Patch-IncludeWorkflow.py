@@ -1,9 +1,11 @@
-# README: this script modifies several accessory files that seem to be needed for getting IncludeWorkflows
-# recognised in dotnet build. Gnerating individual api yml files for the .bonsai IncludeWorkflows
-# isnt enough as the API template relies on certain shared models that don't build correctly
+# This script generates .yml files for IncludeWorkflow .bonsai operators,
+# Adds them to namespace.yml and toc.yml files, 
+# And modifies the .manifest file in api/ (not sure if this step is really necessary).
+# Requirements: pyyaml as yaml support isn't part of standard python library
+# Install pyyaml with `pip install pyyaml`
 # TODO: add yaml flag and check to prevent modification of already modified files 
-# TODO: make it more efficient (too many loops of new entries in each separate function)
-# requirements: pyyaml (install with pip install pyyaml to test locally)
+# TODO: add type and input/output 
+# TODO: refactor and clean up code 
 
 import os
 import yaml
@@ -17,21 +19,14 @@ def find_bonsai_files(src_folder):
     for root, _, files in os.walk(src_folder):
         for file in files:
             if file.endswith(".bonsai"):
-                # Store the full path to the bonsai file
                 bonsai_files.append(os.path.join(root, file))
     return bonsai_files
 
 def extract_namespace(file_path, src_folder):
     """Extract namespace by converting the path to a dotted string."""
-    # Get the relative path from src folder
     relative_path = os.path.relpath(file_path, src_folder)
-
-    # Remove the filename from the path (only keep directories)
     namespace_path = os.path.dirname(relative_path)
-
-    # Replace separators with dots
     namespace = namespace_path.replace(os.sep, '.')
-
     return namespace
 
 def load_existing_toc(toc_path):
@@ -44,7 +39,6 @@ def load_existing_toc(toc_path):
             "api/toc.yml not found. Execute this script from the docs directory or run `docfx metadata` first to generate toc.yml."
         )
 
-
 def patch_toc(toc_data, new_entries):
     """Patch the TOC with new entries."""
     # Create a map of existing namespaces
@@ -55,11 +49,12 @@ def patch_toc(toc_data, new_entries):
         namespace = entry['namespace']
         item_data = {'uid': entry['uid'], 'name': entry['name']}
 
+        # Add new item to the existing namespace
         if namespace in namespace_map:
-            # Add new item to the existing namespace
             namespace_map[namespace]['items'].append(item_data)
+
+        # Create a new namespace entry with proper key order if namespace doesn't exist
         else:
-            # Create a new namespace entry with proper key order
             new_namespace_entry = {
                 'uid': namespace,
                 'name': namespace,
@@ -67,12 +62,13 @@ def patch_toc(toc_data, new_entries):
             }
             toc_data['items'].append(new_namespace_entry)
             namespace_map[namespace] = new_namespace_entry 
+
     return toc_data
 
 def generate_entries(bonsai_files, src_folder):
-    """Generate entries from the list of bonsai files."""
+    """Generate entries from .bonsai file list to feed into create_bonsai_yml"""
     new_entries = []
-    
+
     for file in bonsai_files:
         name = os.path.splitext(os.path.basename(file))[0]
         namespace = extract_namespace(file, src_folder)
@@ -91,6 +87,7 @@ def generate_entries(bonsai_files, src_folder):
     return new_entries
 
 def get_git_information():
+    """Get git information to populate one of the yml fields"""
     branch_name = ""
     repo_url = ""
     with open("../.git/HEAD", "r") as f:
@@ -106,6 +103,7 @@ def get_git_information():
 
 
 def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
+    """Generate .yml file from the .bonsai entries"""
     for entry in bonsai_entries:
         bonsai_yml_file = os.path.join(api_folder, entry['uid']+".yml")
         new_bonsai_yml_file = {}
@@ -128,8 +126,6 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                         }, 
                     'id': entry['name'], 
                     'path': entry['file'],
-                    # this isn't accurate but is hardcoded here because I don't think it affects anything
-                    'startLine': 9
                     },
                 'assemblies': [entry['name']],
                 'namespace': entry['namespace'],
@@ -138,12 +134,9 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                     'content': "[WorkflowElementCategory(ElementCategory.Workflow)]"+"/n"+"public class " + entry['name'],
                     'content.vb': "Public Class " + entry['name']
                 },
-                # # this isn't applicable for bonsai files 
-                # # TODO: maybe make that section of the code more robust to missing fields
-                # 'inheritance': ['System.Object'],
-                # 'inheritedMembers': ['System.Object.GetType'],
             }]
-        # adds properties
+        
+        # Adds properties
         for property_name, property_description in entry['properties'].items():
             new_bonsai_yml_file['items'].append({
                 'uid':entry['uid']+"." + property_name,
@@ -163,13 +156,11 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                         }, 
                     'id': property_name, 
                     'path': entry['file'],
-                    # this isn't accurate but is hardcoded here because I don't think it affects anything
-                    'startLine': 9
                 },
                 'assemblies': [entry['namespace'].split('.')[0]],
                 'namespace': entry['namespace'],
                 'summary': property_description,
-                # Type Placeholder - needs to be tailored for each property or have it empty
+                # Type Placeholder - needs to be tailored for each property or have it be removed in the template for IncludeWorkflow operators
                 'syntax':{
                     'content': 'public placeholder ' + property_name,
                     'parameters': [],
@@ -179,8 +170,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'overload': entry['uid']+'.'+ property_name +'*'
             })
 
-        # adds references
-        # adds parent reference
+        # Adds namespace references
         new_bonsai_yml_file['references']=[{
                 'uid': entry['namespace'],
                 'commentId': "N:"+entry['namespace'],
@@ -189,7 +179,8 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'nameWithType': entry['namespace'],
                 'fullName': entry['namespace'],
         }]
-        # this section modifies the parent reference to include additional information if the parent isn't the root namespace
+
+        # This section modifies the parent reference to include additional information if the parent isn't the root namespace (eg. Bonvision.Collections)
         # Works for 2 namespaces (like Bonvision.Collections), will there be instances where theres more than 2?
         if entry['namespace'].split('.')[0] != entry['namespace']:
             new_bonsai_yml_file['references'][0]['spec.csharp'] = [{
@@ -215,7 +206,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'href': entry['namespace']+".html"
                 }]
         
-        # adds Type value reference (placeholder for now)
+        # Adds Type value reference (placeholder for now)
         new_bonsai_yml_file['references'].append({
                 'uid': 'Placeholder',
                 'commentId': 'T:Placeholder',
@@ -230,7 +221,7 @@ def create_bonsai_yml(bonsai_entries, api_folder, branch_name, repo_url):
                 'name.vb': 'Placeholder'
         })
 
-        # adds properties overload references
+        # Adds properties overload references
         for property_name, description in entry['properties'].items():
             new_bonsai_yml_file['references'].append({
                 'uid':entry['uid']+'.'+ property_name +'*',
@@ -252,10 +243,6 @@ def patch_namespace_files(new_entries, api_folder):
             pass
         else:
             # generate new namespace.yml file if it isnt present
-            # some items in namespace files dont appear as .cs files 
-            # for instance bonvision collections has GratingTrial and GratingParameters
-            # even though there are no .cs files
-            # they are present as classes in CreateGratingTrial and GratingSpecifications specifically
             new_namespace_file = {}
             new_namespace_file["items"]=[{
                 'uid': entry['namespace'],
@@ -270,9 +257,11 @@ def patch_namespace_files(new_entries, api_folder):
                 'assemblies': [entry['namespace'].split('.')[0]]
             }]
             new_namespace_file["references"]=[]
+
             with open(namespace_file, 'w') as f:
                 f.write("### YamlMime:ManagedReference\n")
                 yaml.dump(new_namespace_file, f, default_flow_style=False, sort_keys=False)
+
         with open(namespace_file, 'r') as f:
             namespace_file_to_amend = yaml.safe_load(f)
             namespace_file_to_amend["items"][0]['children'].append(entry['uid'])
@@ -284,6 +273,7 @@ def patch_namespace_files(new_entries, api_folder):
                 'nameWithType': entry['name'],
                 'fullName': entry['uid']
             })
+
         with open(namespace_file, 'w') as f:
             f.write("### YamlMime:ManagedReference\n")
             yaml.dump(namespace_file_to_amend, f, default_flow_style=False, sort_keys=False)
@@ -311,23 +301,24 @@ def extract_information_from_cs(property_namespace, property_assembly, property_
     filename = os.path.join(src_folder, property_assembly, f"{property_operator}.cs")
     if os.path.exists(filename):
         pass
+
     # Edge case - Bonsai.ML operators seem to have a difference namespace/assembly configuration
     else:
         namespace_parts = set(property_namespace.split("."))
         assembly_parts = set(property_assembly.split("."))
         difference = list(namespace_parts - assembly_parts)[0]
         filename = os.path.join(src_folder, property_assembly, difference, f"{property_operator}.cs")
+
     with open(filename, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
 
-            # Check if the line is a Description attribute
+            # Check if the line is a Description attribute and extract the description text within quotes
+            # Do we want to pull from XML summary descriptions for newer operators instead?
             if line.startswith("[Description("):
-                # Extract the description text within quotes
-                # Might need to update it to pull XML summary descriptions for newer operators
                 description = re.search(r'\[Description\("([^"]*)"\)\]', line).group(1)
             
-            # breaks the loop if it finds the property declaration and returns the latest description
+            # Breaks the loop if it finds the property declaration and returns the latest description
             if "public" in line and re.search(rf"\b{property_name}\b", line):
                 break
 
@@ -381,7 +372,6 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
     expression_tag = f"{{{default_ns}}}Expression"  
 
     # Find description (if no description found should the operator be skipped?)
-    # some of the bonsai files in machine_learning repo dont have description and not sure if they are supposed to be hidden or not
     if root.find(description_tag) is not None:
         operator_description = root.find(description_tag).text
     else:
@@ -421,8 +411,8 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
             file_path = os.path.join(src_folder, parts[0], subparts[0], f"{subparts[1]}.bonsai")
             include_workflow_list.append(file_path)
             
-        # finds embededded operators to pull parameter descriptions from
-        # so far though I have only seen combinators and none of the rest 
+        # Finds embededded operators to pull parameter descriptions from
+        # So far though I have only seen combinators and none of the rest 
         # ':' in xsi_type catches some older operators that aren't enclosed by a Bonsai xsi:type (like io.csvreader)   
         if xsi_type in ("Combinator", "Source", "Transform", "Sink") or ':' in xsi_type:
             if xsi_type in ("Combinator", "Source", "Transform", "Sink"):
@@ -436,8 +426,6 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                 property_namespace = xml_namespace[property_reference.split(':')[0]].split(':')[1].split(';')[0]
                 property_assembly = xml_namespace[property_reference.split(':')[0]].split('=')[1]
                 property_operator = property_reference.split(':')[1]
-                # if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
-                #     print(property_reference, property_namespace, property_assembly, property_operator)
                 property_list = []
                 for child in operator_elem:
                     property_name = child.tag.split("}")[-1] 
@@ -508,22 +496,17 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                         })
         
             
-        # finds properties that have been mapped and are thus hidden or represented by some other property name           
+        # Finds properties that have been mapped and are thus hidden or represented by some other property name           
         if xsi_type == "PropertyMapping":
             for prop in expression.findall(f".//{{{default_ns}}}PropertyMappings/{{{default_ns}}}Property"):
                 property_name = prop.get('Name')
                 property_mapping_list.append(property_name)
 
-    # if entry == "../src\BonVision\Environment\MeshMapping.bonsai":
-    #     print(entry, xml_list)
-    # print(include_workflow_list)
-    # print(entry, property_mapping_list, properties_to_keep)
-    # clean up xml list for propert map properties
+
+    # Remove mapped properties from XML list
     for prop in property_mapping_list[:]:
         if prop in properties_to_keep:
             property_mapping_list.remove(prop)
-
-    # print(entry, property_mapping_list)
     
     for prop in xml_list[:]:
         if prop.get("display_name") in property_mapping_list:
@@ -544,7 +527,6 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                     for file in include_workflow_list:
                         _, temp_property= extract_information_from_bonsai(file, src_folder, stop_recursion = True)
                         description = temp_property.get(potential_property['property_name'], False)
-                        # print(entry, description, potential_property['property_name'],potential_property['display_name'])
                         if description:
                             break
                 
@@ -554,25 +536,22 @@ def extract_information_from_bonsai(entry, src_folder, stop_recursion = False):
                         if potential_source['type'] == "PropertyReference":
                             if potential_property['property_name'] in potential_source['property_list']:
 
-                                # uses a CS file extractor if the PropertyReference is within the library, but the check is not that robust
+                                # Uses a CS file extractor if the PropertyReference is within the library, but the check could be more robust
                                 if potential_source['property_assembly'] in entry:
-                                    # print(entry)
                                     description = extract_information_from_cs(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], src_folder, potential_property['property_name'])
                                     if description:
                                         break
                                 
-                                # uses a package file extractor 
+                                # Uses a package file extractor 
                                 else:
                                     if potential_source.get('edge_case'):
                                         description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], potential_source['edge_case_property_name'])
                                     else:
                                         description = extract_information_from_package(potential_source['property_namespace'], potential_source['property_assembly'], potential_source['property_operator'], potential_property['property_name'])
-                                    # print(entry, potential_property['property_name'],potential_source, description)
                                     if description:
                                         break
                 
-                # xml_list[index]["description"] = description
-                # bunch of checks to make sure that it only overwrites previous declarations if they are empty and if it itself is not empty.
+                # Bunch of checks to make sure that it only overwrites previous declarations if they are empty and if it itself is not empty.
                 if description:
                     if potential_property["display_name"] == False:
                         if not processed_properties.get(potential_property["property_name"]): 
@@ -598,13 +577,13 @@ def main():
     bonsai_files = find_bonsai_files(src_folder)
     print(f"Found {len(bonsai_files)} .bonsai files.")
 
-    # Generate entries from bonsai files
-    new_entries = generate_entries(bonsai_files, src_folder)
-
-    # Get git information to populate yml source field
+    # Get git information to populate .yml source field
     branch_name, repo_url = get_git_information()
 
-    # Create Bonsai Yml Files
+    # Generate entries from .bonsai file list to feed into create_bonsai_yml
+    new_entries = generate_entries(bonsai_files, src_folder)
+
+    # Create .bonsai .yml files
     create_bonsai_yml(new_entries, api_folder, branch_name, repo_url)
     print(f"Successfully created .bonsai yml files in {api_folder}")
 
