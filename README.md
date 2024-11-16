@@ -1,8 +1,7 @@
 # docfx-tools
 
 A repository of docfx tools for Bonsai package documentation:
-- Workflow Container Template patching the modern template to provide stylesheets and scripts for rendering custom workflow containers with copy functionality. 
-- API Template that revamps the API page to enhance user-friendliness.
+- Workflow Container Template patching the modern template to provide stylesheets and scripts for rendering custom workflow containers with copy functionality.
 - IncludeWorkflow Operator Patch that adds support for Bonsai `IncludeWorkflow` Operators
 - Powershell Scripts that automate several content generation steps for package documentation websites.
 
@@ -44,36 +43,6 @@ export default {
     }
 }
 ```
-## Using API Template
-
-Modify `docfx.json` to include the api template in the template section (note both the workflow container and API template have to be added separately).
-
-```json
-"template": [
-  "default",
-  "modern",
-  "bonsai/template", 
-  "bonsai/template/api", 
-  "template"
-]
-```
-In addition, the images and custom css styles need to be added to the resources section.
-
-```json
-"resource": [
-    {
-    "files": [
-        "logo.svg",
-        "favicon.ico",
-        "images/**",
-        "workflows/**",
-        "bonsai/template/api/images/**",
-        "bonsai/template/api/styles/**"
-    ]
-    }
-]
-```
-To add individual operator workflows for the API pages, open Bonsai, add the operator, and save each individual operator workflow as `OperatorName.bonsai` (case sensitive) in `docs/workflows/operators`.
 
 ## Using IncludeWorkflow Operator Patch
 
