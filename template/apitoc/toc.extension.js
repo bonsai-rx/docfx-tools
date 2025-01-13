@@ -30,9 +30,9 @@ exports.preTransform = function (model) {
   //Setups operator mapping
   const typeIndexMap = {
     'source': 0,
-    'transform': 1,
-    'sink': 2,
-    'combinator': 3
+    'transform': 0,
+    'sink': 0,
+    'combinator': 0
   };
 
     // Iterates through each namespace for packages with multiple namespaces
@@ -42,15 +42,9 @@ exports.preTransform = function (model) {
 
         // Setups operator categories 
         let items = [{
-          'name': 'Sources',
+          'name': 'Operators',
           'items': []}, {
-          'name': 'Transforms',
-          'items': []}, {
-          'name': 'Sinks',
-          'items': []}, {
-          'name': 'Combinators',
-          'items': []}, {
-          'name': 'Helper Classes',
+          'name': 'Classes',
           'items': []}, {
           'name': 'Enums',
           'items': []         
@@ -67,11 +61,11 @@ exports.preTransform = function (model) {
               items[index].items.push(namespace.items[i]);
             } 
             else {
-              items[4].items.push(namespace.items[i]);
+              items[1].items.push(namespace.items[i]);
             }
           }
           if (model.__global._shared[globalYml] && model.__global._shared[globalYml].type === 'enum'){
-            items[5].items.push(namespace.items[i]);
+            items[2].items.push(namespace.items[i]);
           }
         }
         
