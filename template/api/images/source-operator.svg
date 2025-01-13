@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="164"
+   height="164"
+   id="SvgGdi_output"
+   version="1.1"
+   sodipodi:docname="source-node.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showguides="true"
+     inkscape:zoom="3.0494949"
+     inkscape:cx="77.225905"
+     inkscape:cy="90.998677"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="root_group"
+     showgrid="true">
+    <inkscape:grid
+       id="grid4"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="41"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <g
+     style="shape-rendering:auto"
+     id="root_group"
+     transform="matrix(4,0,0,4,6,6)">
+    <path
+       transform="translate(4,4)"
+       id="87"
+       d="m 31.179,5.2 c 3.8195,5.8918 3.8024,13.482 -0.04348,19.357"
+       style="opacity:1;fill:none;stroke:#a9a9a9;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:9" />
+    <circle
+       id="88"
+       cy="15"
+       cx="15"
+       transform="translate(4,4)"
+       style="opacity:1;fill:#5bb27e;stroke:none"
+       r="15" />
+  </g>
+  <defs
+     id="clips_hatches_and_gradients">
+    <clipPath
+       id="97_text_clipper">
+      <rect
+         x="4"
+         y="39"
+         width="68.660004"
+         height="27.65"
+         id="98" />
+    </clipPath>
+    <clipPath
+       id="103_text_clipper">
+      <rect
+         x="4"
+         y="51.450001"
+         width="68.660004"
+         height="27.65"
+         id="104" />
+    </clipPath>
+  </defs>
+</svg>

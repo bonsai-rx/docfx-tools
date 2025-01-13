@@ -1,0 +1,45 @@
+{{#isEnum}}
+
+<h1 id="{{id}}" data-uid="{{uid}}" class="text-break">
+  {{name.0.value}}
+  {{#sourceurl}}<a class="header-action link-secondary" title="View source" href="{{sourceurl}}"><i class="bi bi-code-slash"></i></a>{{/sourceurl}}
+</h1>
+
+{{{bonsai.description}}}
+
+{{#bonsai.hasEnumFields}}
+
+<h2>Fields</h2>
+
+<table>
+
+  <tr>
+    <th style = "white-space: no-wrap">Field & Value</th>
+    <th>Description</th>
+  </tr>
+
+  {{#bonsai.enumFields}}
+  <tr>
+    <td style = "white-space: no-wrap">
+      <code>
+        {{{field&value}}}
+      </code>
+    </td>
+    <td>
+      {{{enumDescription}}}
+    </td>
+  </tr>
+  {{/bonsai.enumFields}}
+
+</table>
+
+{{/bonsai.hasEnumFields}}
+
+<h2>Relationships</h2>
+<div>
+  <dl>{{__global.namespace}} - {{{namespace.specName.0.value}}}</dl>
+  {{#assemblies.0}}<dl>{{__global.assembly}} - {{assemblies.0}}.dll</dl>{{/assemblies.0}}
+</div>
+
+
+{{/isEnum}}

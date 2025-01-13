@@ -1,0 +1,29 @@
+<tr>
+
+    <td style = "white-space: nowrap;">
+        <code>{{{name}}}</code>
+    </td>
+
+    <td style = "white-space: nowrap;">
+        {{{type}}}
+    </td>
+
+    <td>
+        <div class="tableFormat" style="border: 0 hidden">
+            {{#propertyDescription}}
+            {{{propertyDescription.text}}}
+            {{#hasEnum}}
+            <table>
+                {{#enum}}
+                <tr>
+                    <td class="term"><code>{{{field&value}}}</code></td>
+                    <td class="description">{{{enumDescription}}}</td>
+                </tr>
+                {{/enum}}
+            </table>
+            {{/hasEnum}}
+            {{/propertyDescription}}
+        </div>
+    </td>
+
+</tr>

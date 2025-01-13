@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="164"
+   height="164"
+   id="SvgGdi_output"
+   version="1.1"
+   sodipodi:docname="sink-node.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4"
+     inkscape:cx="88.125"
+     inkscape:cy="91.625"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g4"
+     showgrid="true"
+     showguides="true">
+    <inkscape:grid
+       id="grid4"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="41"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+    <sodipodi:guide
+       position="-41,143"
+       orientation="0,-1"
+       id="guide4"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="25,84"
+       orientation="1,0"
+       id="guide5"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <g
+     id="g4"
+     transform="matrix(4,0,0,4,-53.625,-66.267287)">
+    <path
+       style="fill:none;stroke:#a9a9a9;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:9;shape-rendering:auto"
+       id="47"
+       d="m 29.064177,55.26703 c -6.7526,-1.4409 -12.019,-6.7308 -13.429,-13.49" />
+    <circle
+       id="48"
+       cy="37.066822"
+       cx="33.90625"
+       style="fill:#9b5bb3;stroke:none;shape-rendering:auto"
+       r="15" />
+  </g>
+  <defs
+     id="clips_hatches_and_gradients">
+    <clipPath
+       id="54_text_clipper">
+      <rect
+         x="4"
+         y="39"
+         width="64.839996"
+         height="13.83"
+         id="55" />
+    </clipPath>
+  </defs>
+</svg>
