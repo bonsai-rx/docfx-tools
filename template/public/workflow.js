@@ -3,7 +3,7 @@ export default {
         const wrap = document.createElement("pre");
         wrap.innerHTML =
             '<a class="btn border-0 code-action" href="#" title="Copy">'+
-            '  <i class="bi bi-clipboard"></i>'+
+            '<i class="bi bi-clipboard"></i>'+
             '</a>';
         const button = wrap.querySelector("a");
         button.addEventListener("click", (e) => {

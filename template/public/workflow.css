@@ -15,3 +15,7 @@
   max-width: 50%;
   float: inline-end;
 }
+
+pre > .code-action:has(+ div.workflow) {
+  display: block;
+}
