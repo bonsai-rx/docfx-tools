@@ -39,7 +39,7 @@ export default {
 }
 ```
 
-## Powershell Scripts
+## Scripts
 
 This repository also provides helper scripts to automate several content generation steps for package documentation websites.
 
@@ -48,5 +48,5 @@ This repository also provides helper scripts to automate several content generat
 Exporting SVG images for all example workflows can be automated by placing all `.bonsai` files in a `workflows` folder and calling the below script pointing to the bin directory to include. A bonsai environment is assumed to be available in the `.bonsai` folder in the repository root.
 
 ```ps1
-.\modules\Export-Image.ps1 "..\src\PackageName\bin\Release\net472"
+.\scripts\Export-Image.ps1 "..\src\PackageName\bin\Release\net472"
 ```
