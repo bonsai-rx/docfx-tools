@@ -26,11 +26,44 @@ export default {
             element.classList.remove("link-success");
         }, 1000);
     },
+    textFill: { light: "#000", dark: "#eee" },
+    dataPrefix: "data:image/svg+xml;charset=utf-8,",
+    themedImages: [],
+    getTheme: function() {
+        return document.documentElement.getAttribute("data-bs-theme") ??
+            (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    },
+    themedSource: function(svg, theme) {
+        const end = svg.lastIndexOf("</svg>");
+        const style = `<style>text { fill: ${this.textFill[theme] ?? this.textFill.light}; }</style>`;
+        return this.dataPrefix + encodeURIComponent(svg.slice(0, end) + style + svg.slice(end));
+    },
+    loadThemedImage: async function(img, path) {
+        let svg;
+        try {
+            const response = await fetch(path);
+            svg = response.ok ? await response.text() : "";
+        } catch {
+            svg = "";
+        }
+        if (svg.lastIndexOf("</svg>") < 0) {
+            img.src = path;
+            return;
+        }
+        this.themedImages.push(img);
+        img.src = this.themedSource(svg, this.getTheme());
+    },
+    setImageTheme: function(img, theme) {
+        const svg = decodeURIComponent(img.src.slice(this.dataPrefix.length));
+        const start = svg.lastIndexOf("<style>text { fill:");
+        const stop = svg.indexOf("</style>", start) + "</style>".length;
+        img.src = this.themedSource(svg.slice(0, start) + svg.slice(stop), theme);
+    },
     renderElement: function(element) {
         element.classList.add("hljs");
         const img = element.querySelector("img");
         const workflowPath = img.src;
-        img.src = workflowPath.replace(/\.[^.]+$/, ".svg");
+        this.loadThemedImage(img, workflowPath.replace(/\.[^.]+$/, ".svg"));
 
         const wrap = this.createCodeContainer(workflowPath);
         const parent = element.parentElement;
@@ -38,10 +71,11 @@ export default {
         wrap.appendChild(element);
     },
     init: async function() {
-        const observer = new MutationObserver(() => {
-            const theme = document.documentElement.getAttribute("data-bs-theme");
-            const root = document.querySelector(':root');
-            root.style.setProperty("color-scheme", theme);
+        new MutationObserver(() => {
+            const theme = this.getTheme();
+            for (const image of this.themedImages) {
+                this.setImageTheme(image, theme);
+            }
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] })
         for (const element of document.getElementsByClassName("workflow")) {
             this.renderElement(element)
