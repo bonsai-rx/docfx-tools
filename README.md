@@ -47,7 +47,7 @@ The PowerShell scripts require [PowerShell 7.4 or later](https://learn.microsoft
 
 ### Exporting workflow images
 
-Exporting SVG images for all example workflows can be automated by placing all `.bonsai` files in a `workflows` folder and calling the below script pointing to the bin directory to include. A bonsai environment is assumed to be available in the `.bonsai` folder in the repository root.
+Exporting SVG images for all example workflows can be automated by placing all `.bonsai` files in a `workflows` folder and calling the below script pointing to the bin directory to include. A bonsai environment is assumed to be available in the `.bonsai` folder in the repository root. Run `Get-Help` on the script for details.
 
 ```ps1
 .\scripts\Export-Image.ps1 "..\src\PackageName\bin\Release\net472"
