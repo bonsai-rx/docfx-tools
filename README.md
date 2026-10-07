@@ -52,3 +52,28 @@ Exporting SVG images for all example workflows can be automated by placing all `
 ```ps1
 .\scripts\Export-Image.ps1 "..\src\PackageName\bin\Release\net472"
 ```
+
+### Generating a Python API reference
+
+The `generate-python-api.py` script writes the API reference of a Python package as DocFX UniversalReference pages. The script declares its own dependencies, so it runs with [uv](https://docs.astral.sh/uv/) without further setup. All arguments are optional and default to values derived from the repository. Run the script with `--help` for details.
+
+```ps1
+uv run --locked .\scripts\generate-python-api.py
+```
+
+Include the generated files in the `build.content` section of `docfx.json`:
+
+```json
+      {
+        "src": "../artifacts/docs/python/",
+        "dest": "python",
+        "files": "**/*.yml"
+      }
+```
+
+Then add the API reference to the top-level `toc.yml`:
+
+```yml
+- name: Python API
+  href: ../artifacts/docs/python/
+```
