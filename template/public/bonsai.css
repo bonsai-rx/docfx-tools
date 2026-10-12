@@ -1,3 +1,7 @@
+[data-bs-theme=light] {
+  color-scheme: light;
+}
+
 .workflow {
   display: flex;
   padding: 1px;

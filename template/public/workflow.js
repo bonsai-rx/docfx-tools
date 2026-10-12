@@ -59,11 +59,21 @@ export default {
         const stop = svg.indexOf("</style>", start) + "</style>".length;
         img.src = this.themedSource(svg.slice(0, start) + svg.slice(stop), theme);
     },
+    createImageLink: function(img, path) {
+        const link = document.createElement("a");
+        link.href = path;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer nofollow";
+        img.replaceWith(link);
+        link.appendChild(img);
+    },
     renderElement: function(element) {
         element.classList.add("hljs");
         const img = element.querySelector("img");
         const workflowPath = img.src;
-        this.loadThemedImage(img, workflowPath.replace(/\.[^.]+$/, ".svg"));
+        const imagePath = workflowPath.replace(/\.[^.]+$/, ".svg");
+        this.createImageLink(img, imagePath);
+        this.loadThemedImage(img, imagePath);
 
         const wrap = this.createCodeContainer(workflowPath);
         const parent = element.parentElement;
