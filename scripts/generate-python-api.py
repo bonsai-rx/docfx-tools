@@ -16,8 +16,9 @@ All arguments are optional, and the script can run from any folder of the reposi
 paths and the output folder are relative to the repository root, and source links point to the
 web URL and branch reported by GitHub Actions or by git.
 
-The [tool.docfx-tools] table of pyproject.toml can specify the package and list Sphinx
-inventories for linking type names from other packages:
+The [tool.docfx-tools] table can specify the package and list Sphinx inventories for linking
+type names from other packages. It is read from the nearest pyproject.toml above a search path
+that declares it, up to the repository root:
 
     [tool.docfx-tools]
     package = "mypackage"
@@ -440,12 +441,24 @@ def find_package(search_paths):
     return candidates[0]
 
 
-def read_settings(root):
-    """Returns the [tool.docfx-tools] table of pyproject.toml."""
-    pyproject = root / "pyproject.toml"
+def read_table(pyproject):
+    """Returns the [tool.docfx-tools] table of a pyproject.toml file."""
     if not pyproject.is_file():
         return {}
     return tomllib.loads(pyproject.read_text(encoding="utf-8")).get("tool", {}).get("docfx-tools", {})
+
+
+def read_settings(root, search_paths):
+    """Returns the nearest [tool.docfx-tools] table above a search path, up to the repository root."""
+    root = root.resolve()
+    for search_path in search_paths:
+        folder = Path(search_path).resolve()
+        while folder.is_relative_to(root):
+            settings = read_table(folder / "pyproject.toml")
+            if settings:
+                return settings
+            folder = folder.parent
+    return read_table(root / "pyproject.toml")
 
 
 def main():
@@ -495,8 +508,8 @@ def main():
     args = parser.parse_args()
 
     root = Path(args.repo_root) if args.repo_root else find_root()
-    settings = read_settings(root)
     search_paths = [str(root / path) for path in (args.search_path or ["src"])]
+    settings = read_settings(root, search_paths)
     output = root / (args.output or "artifacts/docs/python")
     repo = args.repo or find_repo(root)
     branch = args.branch or find_branch(root)
