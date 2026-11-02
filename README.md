@@ -77,3 +77,23 @@ Then add the API reference to the top-level `toc.yml`:
 - name: Python API
   href: ../artifacts/docs/python/
 ```
+
+## Extending UniversalReference pages
+
+A custom template listed after `bonsai-docfx/template` can transform UniversalReference pages without replacing `UniversalReference.extension.js`. Add a module named `UniversalReference.{name}.js` to the template, where the name is anything other than `common` or `extension`, and assign a `preTransform` or `postTransform` function to `exports`:
+
+```js
+exports.postTransform = function (model) {
+  return model;
+}
+```
+
+Then register the module in the `token.json` of the template, under a key that ends in `UniversalReferenceTransform`:
+
+```json
+{
+  "exampleUniversalReferenceTransform": "UniversalReference.example.js"
+}
+```
+
+Registered transforms run after the transforms of this template, in the order of their templates in `docfx.json`. Every transform runs on every UniversalReference page, so a transform for one kind of page should return any other page unchanged. A template that declares the same key as an earlier template replaces its transform.
