@@ -16,6 +16,7 @@ var getTransforms = function (model) {
 }
 
 exports.preTransform = function (model) {
+  model.yamlmime = 'ManagedReference';
   getTransforms(model).forEach(function (transform) {
     if (transform.preTransform) model = transform.preTransform(model);
   });
@@ -52,6 +53,19 @@ exports.postTransform = function (model) {
       item.sourceurl = item.sourceurl || sourceHref(item);
     });
   });
+
+  var firstParagraph = function (html) {
+    var match = typeof html === 'string' ? html.match(/^\s*<p[\s>][\s\S]*?<\/p>\s*/) : null;
+    return match ? match[0] : html;
+  };
+  if (model.isNamespace) {
+    (model.children || []).forEach(function (group) {
+      if (group.isEmbedded) return;
+      (group.children || []).forEach(function (item) {
+        item.summary = firstParagraph(item.summary);
+      });
+    });
+  }
 
   getTransforms(model).forEach(function (transform) {
     if (transform.postTransform) model = transform.postTransform(model);
