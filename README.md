@@ -78,6 +78,16 @@ Then add the API reference to the top-level `toc.yml`:
   href: ../artifacts/docs/python/
 ```
 
+The script documents every package found under the search paths, unless the packages are specified as arguments or in `[tool.docfx-tools]`. Packages of a project that declares a `Private ::` classifier, such as `Private :: Do Not Upload`, are left out. The generated table of contents has a node for each package, with its classes below it.
+
+To add the API reference of a single package as a section of another table of contents, run the script with `--flat-toc` so the classes are listed without a node for the package. Then set `href` to the generated `toc.yml` instead of its folder, and use `topicUid` to open the package page:
+
+```yml
+- name: Python API
+  href: ../artifacts/docs/python/toc.yml
+  topicUid: mypackage
+```
+
 ## Extending UniversalReference pages
 
 A custom template listed after `bonsai-docfx/template` can transform UniversalReference pages without replacing `UniversalReference.extension.js`. Add a module named `UniversalReference.{name}.js` to the template, where the name is anything other than `common` or `extension`, and assign a `preTransform` or `postTransform` function to `exports`:
