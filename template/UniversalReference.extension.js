@@ -111,5 +111,10 @@ exports.postTransform = function (model) {
   getTransforms(model).forEach(function (transform) {
     if (transform.postTransform) model = transform.postTransform(model);
   });
+
+  var reference = model.tableReference;
+  if (reference && reference.conceptualHeading) {
+    reference.conceptualId = reference.conceptualHeading.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-');
+  }
   return model;
 }
