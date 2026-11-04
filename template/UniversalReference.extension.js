@@ -70,6 +70,44 @@ exports.postTransform = function (model) {
     });
   }
 
+  var escapeHtml = function (text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  };
+  if (model.isEnum) {
+    var rows = [];
+    (model.children || []).forEach(function (group) {
+      if (!group.inField) return;
+      group.children = (group.children || []).filter(function (item) {
+        var content = item.syntax && item.syntax.content;
+        var declaration = content && content.length > 0 ? content[0].value : '';
+        var separator = declaration.indexOf(' = ');
+        if (separator < 0) return true;
+        rows.push({
+          id: item.id,
+          uid: item.uid,
+          cells: [
+            { html: '<code>' + escapeHtml(declaration.slice(0, separator)) + '</code>' },
+            { html: escapeHtml(declaration.slice(separator + 3)) },
+            { html: item.summary }
+          ]
+        });
+        return false;
+      });
+    });
+    if (rows.length > 0) {
+      var global = model.__global || {};
+      var columns = [{ header: global.name || 'Name' }, { header: 'Value' }, { header: global.description || 'Description' }];
+      if (rows.every(function (row) { return !row.cells[2].html; })) {
+        columns.pop();
+        rows.forEach(function (row) { row.cells.pop(); });
+      }
+      model.children = model.children.filter(function (group) { return group.children.length > 0; });
+      model.tableReference = {
+        tables: [{ level: 2, id: 'values', heading: 'Values', intro: '', columns: columns, rows: rows }]
+      };
+    }
+  }
+
   getTransforms(model).forEach(function (transform) {
     if (transform.postTransform) model = transform.postTransform(model);
   });
