@@ -76,12 +76,17 @@ class Generator:
 
     def class_members(self, cls):
         described = self.attribute_descriptions(cls)
-        is_enum = any(str(getattr(base, "canonical_path", base)).startswith("enum.") for base in cls.bases)
+        is_enum = self.is_enum(cls)
         for name, member in cls.members.items():
             if member.is_alias or (member.is_attribute and member.docstring is None and name not in described and not is_enum):
                 continue
             if name == "__init__" or not name.startswith("_"):
                 yield name, member
+
+    @staticmethod
+    def is_enum(cls):
+        """Returns whether a class derives directly from an enum type of the standard library."""
+        return any(str(getattr(base, "canonical_path", base)).startswith("enum.") for base in cls.bases)
 
     @staticmethod
     def attribute_descriptions(obj):
@@ -323,7 +328,7 @@ class Generator:
 
     def class_page(self, uid, cls):
         self.references = {}
-        item = self.item(uid, cls, "class", self.package.path, scope=uid)
+        item = self.item(uid, cls, "enum" if self.is_enum(cls) else "class", self.package.path, scope=uid)
         bases = [self.type_uid(base) for base in cls.bases]
         if bases:
             item["inheritance"] = [{"type": base} for base in bases]

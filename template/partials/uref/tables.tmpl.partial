@@ -1,0 +1,54 @@
+<h1 id="{{id}}" data-uid="{{uid}}" class="text-break">{{#title}}{{title}}{{/title}}{{^title}}{{>partials/title}}{{/title}}</h1>
+{{#aliases}}
+<span id="{{id}}" data-uid="{{uid}}"></span>
+{{/aliases}}
+<div class="markdown summary">{{{summary}}}</div>
+
+{{#details.0}}
+<div class="text-secondary d-flex flex-wrap column-gap-4">
+{{/details.0}}
+{{#details}}
+  <dl><div><dt>{{term}}</dt><dd>{{{description}}}</dd></div></dl>
+{{/details}}
+{{#details.0}}
+</div>
+{{/details.0}}
+
+{{#tables}}
+<h{{level}} class="section" id="{{id}}">{{heading}}</h{{level}}>
+{{#intro}}
+<p>{{{intro}}}</p>
+{{/intro}}
+<table class="table table-bordered table-condensed">
+  <thead>
+    <tr>
+{{#columns}}
+      <th>{{{header}}}</th>
+{{/columns}}
+    </tr>
+  </thead>
+  <tbody>
+{{#rows}}
+    <tr{{#uid}} id="{{id}}" data-uid="{{uid}}"{{/uid}}>
+{{#cells}}
+      <td>{{{html}}}</td>
+{{/cells}}
+    </tr>
+{{/rows}}
+  </tbody>
+</table>
+{{/tables}}
+
+{{>partials/uref/members}}
+
+{{#conceptual}}
+{{#conceptualHeading}}
+<h2 class="section" id="conceptual">{{conceptualHeading}}</h2>
+{{/conceptualHeading}}
+<div class="markdown conceptual">{{{conceptual}}}</div>
+{{/conceptual}}
+
+{{#remarks}}
+<h2 class="section" id="{{id}}_remarks">{{__global.remarks}}</h2>
+<div class="markdown remarks">{{{remarks}}}</div>
+{{/remarks}}

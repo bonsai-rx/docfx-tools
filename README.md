@@ -107,3 +107,28 @@ Then register the module in the `token.json` of the template, under a key that e
 ```
 
 Registered transforms run after the transforms of this template, in the order of their templates in `docfx.json`. Every transform runs on every UniversalReference page, so a transform for one kind of page should return any other page unchanged. A template that declares the same key as an earlier template replaces its transform.
+
+### Rendering a page as tables
+
+A transform can render a page as a set of tables by assigning a `tableReference` object to the model. The page keeps its own title, summary, conceptual content and remarks, and any members left in `children` are listed after the tables. Enum pages of the Python API reference use this to list their values.
+
+```js
+model.tableReference = {
+  tables: [{
+    level: 2,
+    id: 'values',
+    heading: 'Values',
+    intro: '',
+    columns: [{ header: 'Name' }, { header: 'Value' }],
+    rows: [{ id: 'Red', uid: 'example.Color.Red', cells: [{ html: '<code>Red</code>' }, { html: '1' }] }]
+  }]
+};
+```
+
+Each table is rendered with a section heading of the specified `level`, followed by the `intro` paragraph when it is not empty. A row with a non-empty `uid` becomes the anchor of that UID, so links to it resolve. Every table and row has to define all of its properties, even when empty, since a missing value is looked up on the enclosing objects instead.
+
+The `tableReference` object also accepts three optional properties:
+
+- `aliases`, a list of objects with `id` and `uid`, adds anchors for other UIDs that the page documents.
+- `details`, a list of objects with `term` and `description`, renders a row of details below the summary.
+- `conceptualHeading` adds a section heading above the conceptual content.
