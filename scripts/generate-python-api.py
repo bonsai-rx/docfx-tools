@@ -76,8 +76,9 @@ class Generator:
 
     def class_members(self, cls):
         described = self.attribute_descriptions(cls)
+        is_enum = any(str(getattr(base, "canonical_path", base)).startswith("enum.") for base in cls.bases)
         for name, member in cls.members.items():
-            if member.is_alias or (member.is_attribute and member.docstring is None and name not in described):
+            if member.is_alias or (member.is_attribute and member.docstring is None and name not in described and not is_enum):
                 continue
             if name == "__init__" or not name.startswith("_"):
                 yield name, member
