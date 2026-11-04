@@ -131,4 +131,4 @@ The `tableReference` object also accepts three optional properties:
 
 - `aliases`, a list of objects with `id` and `uid`, adds anchors for other UIDs that the page documents.
 - `details`, a list of objects with `term` and `description`, renders a row of details below the summary.
-- `conceptualHeading` adds a section heading above the conceptual content.
+- `conceptualHeading` adds a section heading above the conceptual content, with an anchor derived from its text.

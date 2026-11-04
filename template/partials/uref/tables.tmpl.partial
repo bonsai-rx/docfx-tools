@@ -43,7 +43,7 @@
 
 {{#conceptual}}
 {{#conceptualHeading}}
-<h2 class="section" id="conceptual">{{conceptualHeading}}</h2>
+<h2 class="section" id="{{conceptualId}}">{{conceptualHeading}}</h2>
 {{/conceptualHeading}}
 <div class="markdown conceptual">{{{conceptual}}}</div>
 {{/conceptual}}
