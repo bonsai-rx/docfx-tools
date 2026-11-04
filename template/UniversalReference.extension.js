@@ -51,6 +51,9 @@ exports.postTransform = function (model) {
   (model.children || []).forEach(function (group) {
     (group.children || []).forEach(function (item) {
       item.sourceurl = item.sourceurl || sourceHref(item);
+      item.summary = item.summary || '';
+      item.conceptual = item.conceptual || '';
+      item.remarks = item.remarks || '';
     });
   });
 
