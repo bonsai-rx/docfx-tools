@@ -12,7 +12,7 @@ Requires PowerShell 7.4 or later.
 
 .PARAMETER libPath
 Folders containing assemblies needed by the workflows, such as the build output of the
-documented package.
+documented package. Folders that do not exist are skipped.
 
 .PARAMETER workflowPath
 Folder searched recursively for workflow files. Defaults to .\workflows.
@@ -83,10 +83,6 @@ if (-not $documentationRoot) {
     $documentationRoot = Resolve-Path $workflowPath
 }
 
-$modulePath = Join-Path $PSScriptRoot "Export-Tools.psm1"
-$bootstrapperPath = (Resolve-Path $bootstrapperPath).Path
-$libArgs = @(foreach ($path in $libPath) { "--lib"; "$(Resolve-Path $path)" })
-
 $sessionPath = $ExecutionContext.SessionState.Path
 $exports = @(foreach ($workflowFile in Get-ChildItem -File -Recurse (Join-Path $workflowPath "*.bonsai")) {
     $svgPath = Join-Path $workflowFile.DirectoryName "$($workflowFile.BaseName).svg"
@@ -107,6 +103,10 @@ $exports = @(foreach ($workflowFile in Get-ChildItem -File -Recurse (Join-Path $
 if ($exports.Count -eq 0) {
     return
 }
+
+$modulePath = Join-Path $PSScriptRoot "Export-Tools.psm1"
+$bootstrapperPath = (Resolve-Path $bootstrapperPath).Path
+$libArgs = @($libPath | Resolve-Path -ErrorAction Ignore | ForEach-Object { "--lib"; "$_" })
 
 $results = @(Write-ExportResult (Export-Svg $exports[0] $libArgs $bootstrapperPath $modulePath))
 if (!$results[0].Failed -and $exports.Count -gt 1) {
